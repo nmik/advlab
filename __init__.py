@@ -23,16 +23,16 @@ ADVLAB_BIN = os.path.join(ADVLAB_ROOT, 'bin')
 ADVLAB_CONFIG = os.path.join(ADVLAB_ROOT, 'config')
 ADVLAB_UTILS = os.path.join(ADVLAB_ROOT, 'utils')
 ADVLAB_DOC = os.path.join(ADVLAB_ROOT, 'doc')
-ADVLAB_DOC_FIGURES = os.path.join(ADVLAB_DOC, 'figures')
 ADVLAB_DATA = os.path.join(ADVLAB_ROOT, 'data')
 
 """ This is the output directory.
 """
 try:
     ADVLAB_OUT = os.environ['ADVLAB_OUT']
+    ADVLAB_OUT_FIGURES = os.environ(ADVLAB_OUT, 'figures')
 except:
     ADVLAB_OUT = os.path.join(ADVLAB_ROOT, 'output')
+    ADVLAB_OUT_FIGURES = os.path.join(ADVLAB_OUT, 'figures')
 
 if __name__ == '__main__':
     print('ADVLAB_ROOT: %s' % ADVLAB_ROOT)
-    print ADVLAB_UTILS
