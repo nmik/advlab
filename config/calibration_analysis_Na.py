@@ -74,7 +74,7 @@ if AnalyseSpectra == True:
     plt.plot(bins, fit21, 'r--', linewidth=1)
     plt.plot(bins, fit22, 'r--', linewidth=1)
     overlay_tag()
-    plt_figure = 'Na_spectum_ch2.png'
+    plt_figure = 'Na_spectrum_ch2.png'
     save_current_figure(plt_figure, clear=False)
     #--------
     plt.figure(figsize=(10, 7), dpi=80)
@@ -89,7 +89,7 @@ if AnalyseSpectra == True:
     plt.plot(bins, fit21, 'r--', linewidth=1)
     plt.plot(bins, fit22, 'r--', linewidth=1)
     overlay_tag()
-    plt_figure = 'Na_spectum_ch2.png'
+    plt_figure = 'Na_spectrum_ch0.png'
     save_current_figure(plt_figure, clear=False)
     plt.show()
 
