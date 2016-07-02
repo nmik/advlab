@@ -19,7 +19,7 @@ import time
 import os
 from matplotlib import pyplot
 
-from advlab import ADVLAB_DOC_FIGURES
+from advlab import ADVLAB_OUT_FIGURES
 from advlab.utils.logging_ import logger
 
 DEFAULT_FIG_WIDTH = 8.
@@ -57,7 +57,7 @@ def overlay_tag(x=0.95, y=0.95, color='black'):
     pyplot.text(x, y, text, color=color, size=10, horizontalalignment='right',
                 transform=pyplot.gca().transAxes)
 
-def save_current_figure(file_name, folder=ADVLAB_DOC_FIGURES, clear=True,
+def save_current_figure(file_name, folder=ADVLAB_OUT_FIGURES, clear=True,
                         show=False):
     """Save the current matplotlib figure in `XIMPOL_DOC_FIGURES`.
 
