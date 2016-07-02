@@ -32,7 +32,7 @@ from advlab.utils.matplotlib_ import overlay_tag, save_current_figure
 AnalyseSpectra = False
 AnalyseCoincidence = False
 RootAnalyseSpectra = True
-RootAnalyseCoincidence = True
+RootAnalyseCoincidence = False
 SRC = 'Na'
 TOT_NUM_EN_CH = 15000 #2**(14-1)
 DATA_FILE_NAME = {'delay25ns':'run_gr2_20160630_delay25ns.dat',
@@ -119,8 +119,8 @@ if RootAnalyseSpectra == True:
     out_root = os.path.join(ADVLAB_OUT,'%s_spectra_%s.root'%(SRC,label))
     f = ROOT.TFile(out_root, 'RECREATE')
     c = gRootCanvas('spec', 'spec')                 
-    h1 = build_spectrum('channel_0', e[0])  
-    h2 = build_spectrum('channel_1', e[1]) 
+    h1 = build_spectrum('channel_0', e[0], TOT_NUM_EN_CH)  
+    h2 = build_spectrum('channel_1', e[1], TOT_NUM_EN_CH) 
     l_list = [h1, h2]
     l = gRootLegend(l_list)
     h2.SetLineColor(2)                                                 
