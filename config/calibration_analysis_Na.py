@@ -29,18 +29,16 @@ from advlab.utils.gRootUtils import gRootLegend
 from advlab.utils.matplotlib_ import pyplot as plt
 from advlab.utils.matplotlib_ import overlay_tag, save_current_figure
 
-AnalyseSpectra = False
+AnalyseSpectra = True
 AnalyseCoincidence = False
-RootAnalyseSpectra = True
+RootAnalyseSpectra = False
 RootAnalyseCoincidence = False
 SRC = 'Na'
 TOT_NUM_EN_CH = 15000 #2**(14-1)
 DATA_FILE_NAME = {'delay25ns':'run_gr2_20160630_delay25ns.dat',
                   'delay25ns_3h':'run_gr2_20160630_delay25ns_3h.dat',
                   'delay30ns':'run_gr2_20160630_delay30ns.dat',
-                  'first_att':'run_gr2_20160630_coinc_0.dat',
-
-}
+                  'first_att':'run_gr2_20160630_coinc_0.dat'}
 
 
 from advlab import ADVLAB_DATA
@@ -56,12 +54,12 @@ if AnalyseSpectra == True:
     logger.info('Analyzing Spectra...')
     (mu21, sigma21) = norm.fit(e[1][2700:3100])
     (mu22, sigma22) = norm.fit(e[1][6600:7200])
-    logger.info('Ch2 --> first peak: mu=%.2f, sigma=%.2f'%(mu21, sigma21))
-    logger.info('Ch2 --> first peak: mu=%.2f, sigma=%.2f'%(mu21, sigma21))
+    logger.info('Ch2 --> 1st peak: mu=%.2f, sigma=%.2f'%(mu21, sigma21))
+    logger.info('Ch2 --> 2nd peak: mu=%.2f, sigma=%.2f'%(mu22, sigma22))
     (mu01, sigma01) = norm.fit(e[0][2600:3000])
     (mu02, sigma02) = norm.fit(e[0][6200:7100])
-    logger.info('Ch0 --> first peak: mu=%.2f, sigma=%.2f'%(mu01, sigma01))
-    logger.info('Ch0 --> first peak: mu=%.2f, sigma=%.2f'%(mu01, sigma01))
+    logger.info('Ch0 --> 1st peak: mu=%.2f, sigma=%.2f'%(mu01, sigma01))
+    logger.info('Ch0 --> 2nd peak: mu=%.2f, sigma=%.2f'%(mu02, sigma02))
     
     bins = TOT_NUM_EN_CH/2
     plt.figure(figsize=(10, 7), dpi=80)
