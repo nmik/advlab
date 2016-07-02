@@ -46,12 +46,12 @@ def parse_data(file_path):
     e = np.array(e)
     return ch, t, e
 
-def build_spectrum(name, _e):
+def build_spectrum(name, _e, tot_num_en_ch):
     """Returns a root THF1 with the energy spectrum of the gamma 
        emission from a ginven src
     """
-    nbins = TOT_NUM_EN_CH/2
-    h = ROOT.TH1F(name, name, nbins, 0, TOT_NUM_EN_CH)
+    nbins = tot_num_en_ch/2
+    h = ROOT.TH1F(name, name, nbins, 0, tot_num_en_ch)
     for en in _e:
         h.Fill(en)
     return h
