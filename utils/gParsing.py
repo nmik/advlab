@@ -65,7 +65,7 @@ def build_spectrum_plt(_e, **kwargs):
                  color=kwargs['color'], alpha=kwargs['alpha'])
     return h
     
-def calibrate_energy(_e, ref_point1, ref_point2):
+def channel2energy(_e, ref_point1, ref_point2):
     """Calibrate the measure of energy in the channels
 
        Arguments
@@ -85,7 +85,7 @@ def calibrate_energy(_e, ref_point1, ref_point2):
     en_array = m*_e + q
     return en_array
 
-def check_double_coinc(_t1, _t2, time_window):
+def check_double_coinc(_t1, _t2, _e1, _e2, time_window, outfile):
     """Check events happened in coincidence, inside a coincidence window,
        
        Arguments
@@ -96,13 +96,18 @@ def check_double_coinc(_t1, _t2, time_window):
            array of a second chanel event arrival times in us
        time_window : float
            coincidence window in us
+       outfile : str
+           output file name
     """
+    logger.info('Scanning the data to find coincidences...')
+    switch = False
     if _t1[0] > _t2[0]:
-        logger.info('Excenging time arrays to maintain the sequence...')
+        switch = True
+        logger.info('Exchanging time arrays to maintain the sequence...')
         _ttemp =  _t1
         _t1 = _t2
-        _t2 = _ttemp    
-    coin_indexes = []
+        _t2 = _ttemp
+    coinc_events = []
     for j, t_min in enumerate(_t1):
         t_max = t_min + time_window
         _mask = (_t2 >= t_min)*(_t2 <= t_max)
@@ -111,8 +116,19 @@ def check_double_coinc(_t1, _t2, time_window):
                 index = np.where(_t2 == _t2[_mask][i])[0]
                 if len(index)>1:
                     index = [np.amin(index)]
-                coinc_indexes.append(j, index)
-    return coinc_indexes
+                if switch == False:
+                    coinc_events.append((_t1[j], _e1[j], _t2[index], _e2[index]))
+                else:
+                    coinc_events.append((_t2[index], _e2[index], _t1[j], _e1[j]))
+    logger.info('%i pairs of coincident events found!'%len(coinc_events))
+    file_to_write = open(outfile, 'w')
+    file_to_write.write('#FIRST CHANNEL\t#SECOND CHANNEL \n\n')
+    file_to_write.write('#time - energy\t#time -  energy \n\n')
+    for line in coinc_events:
+        file_to_write.write('%i %.2f\t%i %.2f\n' %(line[0], line[1], line[2], line[3]))
+    file_to_write.close()
+    logger.info('Created output file %s...'%outfile)
+    return 0
 
 def build_coinc_curve(_t1, _t2):
     """Returns the histogram to estrapolate the coincidence curve
