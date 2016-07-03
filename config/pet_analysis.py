@@ -15,7 +15,8 @@ import numpy as np
 from advlab.utils.logging_ import logger
 from advlab.utils.matplotlib_ import pyplot as plt
 from advlab.utils.gParsing import process_data
-from advlab.utils.gParsing import calibrate_energy
+from advlab.utils.gParsing import channel2energy
+from advlab.utils.gParsing import check_double_coinc
 from advlab.utils.logging_ import logger
 from advlab.utils.matplotlib_ import pyplot as plt
 from advlab.utils.matplotlib_ import overlay_tag, save_current_figure
@@ -30,7 +31,10 @@ DATA_FILE_NAME = {'delay25ns':'run_gr2_20160630_delay25ns.dat',
                   'first_att':'run_gr2_20160630_coinc_0.dat'}
 
 
-def draw_en_calib_curves(list_channel_names, list_channel_arrays, list_energy_arrays, show=True):
+def draw_en_calib_curves(list_channel_names, list_channel_arrays, \
+                         list_energy_arrays, show=True):
+    """Function to draw the channel2energy calibration curves
+    """
     plt.figure(figsize=(10, 7), dpi=80)
     plt.title('Na Energy Calibration')
     plt.xlabel('Channel')
@@ -48,11 +52,19 @@ def draw_en_calib_curves(list_channel_names, list_channel_arrays, list_energy_ar
         plt.show()
 
 
-label = 'delay25ns_3h'
+label = 'delay25ns'
 outfile_name = DATA_FILE_NAME[label]
 outfile = os.path.join(ADVLAB_DATA, outfile_name)
 ch, t, e = process_data(outfile, [0,2])
-_energies_ch0 = calibrate_energy(e[0], (2900,0.511), (6900,1.27))
-_energies_ch2 = calibrate_energy(e[1], (2800,0.511), (6700,1.27))
+_energies_ch0 = channel2energy(e[0], (2900,0.511), (6900,1.27))
+_energies_ch2 = channel2energy(e[1], (2800,0.511), (6700,1.27))
 
-draw_en_calib_curves(['Channel 0','Channel 2'], [e[0],e[1]], [_energies_ch0, _energies_ch2])
+# testing draw_en_calib_curves function
+draw_en_calib_curves(['Channel 0','Channel 2'], [e[0],e[1]], \
+                     [_energies_ch0, _energies_ch2], show=False)
+
+# testing check_double_conc function
+coinc_window = 10 #ns
+coinc_outfile = outfile.replace('.dat','_COINC.dat')
+check_double_coinc(t[0], t[1], _energies_ch0, _energies_ch2, \
+                  coinc_window, coinc_outfile)
