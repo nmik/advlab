@@ -109,7 +109,8 @@ def check_double_coinc(_t1, _t2, _e1, _e2, time_window, outfile):
         _t2 = _ttemp
     coinc_events = []
     for j, t_min in enumerate(_t1):
-        t_max = t_min + time_window
+        t_min = t_min - time_window/2
+        t_max = t_min + time_window/2
         _mask = (_t2 >= t_min)*(_t2 <= t_max)
         if np.count_nonzero(_mask) != 0:
             for i, item in enumerate(_t2[_mask]):
@@ -124,10 +125,10 @@ def check_double_coinc(_t1, _t2, _e1, _e2, time_window, outfile):
                                          _e1[j]))
     logger.info('%i pairs of coincident events found!'%len(coinc_events))
     file_to_write = open(outfile, 'w')
-    file_to_write.write('#FIRST CHANNEL\t#SECOND CHANNEL \n\n')
-    file_to_write.write('#time - energy\t#time -  energy \n\n')
+    file_to_write.write('#FIRST CHANNEL\t\t#SECOND CHANNEL \n\n')
+    file_to_write.write('#time - energy\t\t#time -  energy \n\n')
     for line in coinc_events:
-        file_to_write.write('%i %.2f\t%i %.2f\n' %(line[0], line[1], line[2],\
+        file_to_write.write('%i %.2f\t\t%i %.2f\n' %(line[0], line[1], line[2],\
                                                    line[3]))
     file_to_write.close()
     logger.info('Created output file %s...'%outfile)
