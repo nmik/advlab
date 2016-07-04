@@ -23,7 +23,7 @@ from advlab.utils.matplotlib_ import pyplot as plt
 
 
 def parse_data(file_path):
-    """Parse the ASCII file with the GRB light curve data from Swift.   
+    """Parse the ASCII file with events.   
        
        Arguments
        ---------
@@ -46,6 +46,33 @@ def parse_data(file_path):
     e = np.array(e)
     return ch, t, e
 
+def parse_coinc_data(file_path):
+    """Parse the ASCII file with coincident pairs of events.
+
+       Arguments     
+       ---------                            
+       file_path : str 
+           path and name of the file of coincidences to process
+    """
+    t1 = []
+    t2 = []
+    e1 = []
+    e2 = []
+    for line in open(file_path):
+        try:
+            _t1, _e1, _t2, _e2 = [float(item) for item in line.split()]
+            t1.append(_t1)
+            t2.append(_t2)
+            e1.append(_e1)
+            e2.append(_e2)
+        except:
+            pass
+    t1 = np.array(t1, dtype=np.int64)
+    t2 = np.array(t2, dtype=np.int64)
+    e1 = np.array(e1)
+    e2 = np.array(e2)
+    return t1, e1, t2, e2
+
 def build_spectrum(name, _e, tot_num_en_ch):
     """Returns a root THF1 with the energy spectrum of the gamma 
        emission from a ginven src
@@ -65,7 +92,7 @@ def build_spectrum_plt(_e, **kwargs):
                  color=kwargs['color'], alpha=kwargs['alpha'])
     return h
     
-def channel2energy(_e, ref_point1, ref_point2):
+def channel2energy(_e, *arg):
     """Calibrate the measure of energy in the channels
 
        Arguments
@@ -79,10 +106,8 @@ def channel2energy(_e, ref_point1, ref_point2):
            It is assumed that for each couple the first num is the channel
            while the sencond is the corresponding energy [given in MeV].
     """
-    m = (ref_point2[1]-ref_point1[1])/(ref_point2[0]-ref_point1[0])
-    q = ref_point1[1]-ref_point1[0]*(ref_point2[1]-ref_point1[1])/\
-        (ref_point2[0]-ref_point1[0])
-    en_array = m*_e + q
+    
+    en_array = _e
     return en_array
 
 def check_double_coinc(_t1, _t2, _e1, _e2, time_window, outfile):
@@ -101,7 +126,7 @@ def check_double_coinc(_t1, _t2, _e1, _e2, time_window, outfile):
     """
     logger.info('Scanning the data to find coincidences...')
     switch = False
-    if _t1[0] > _t2[0]:
+    if len(_t1) > len(_t2):
         switch = True
         logger.info('Exchanging time arrays to maintain the sequence...')
         _ttemp =  _t1
@@ -116,7 +141,7 @@ def check_double_coinc(_t1, _t2, _e1, _e2, time_window, outfile):
             for i, item in enumerate(_t2[_mask]):
                 index = np.where(_t2 == _t2[_mask][i])[0]
                 if len(index)>1:
-                    index = [np.amin(index)]
+                    index = [np.amin(abs(index-t1))]
                 if switch == False:
                     coinc_events.append((_t1[j], _e1[j], _t2[index], \
                                          _e2[index]))
@@ -125,10 +150,10 @@ def check_double_coinc(_t1, _t2, _e1, _e2, time_window, outfile):
                                          _e1[j]))
     logger.info('%i pairs of coincident events found!'%len(coinc_events))
     file_to_write = open(outfile, 'w')
-    file_to_write.write('#FIRST CHANNEL\t\t#SECOND CHANNEL \n\n')
-    file_to_write.write('#time - energy\t\t#time -  energy \n\n')
+    file_to_write.write('#FIRST CHANNEL\t#SECOND CHANNEL \n\n')
+    file_to_write.write('#time - energy\t#time -  energy \n\n')
     for line in coinc_events:
-        file_to_write.write('%i %.2f\t\t%i %.2f\n' %(line[0], line[1], line[2],\
+        file_to_write.write('%i %.2f %i %.2f\n' %(line[0], line[1], line[2],\
                                                    line[3]))
     file_to_write.close()
     logger.info('Created output file %s...'%outfile)
@@ -146,7 +171,7 @@ def build_coinc_curve(_t1, _t2):
     """
     # _t1 and _t2 are ordered arrays
     # Check which array starts first
-    if _t1[0] > _t2[0]:
+    if len(_t1) > len(_t2):
         logger.info('Excenging time arrays to maintain the sequence...')
         _ttemp =  _t1
         _t1 = _t2
@@ -192,7 +217,7 @@ def build_coinc_curve_plt(_t1,_t2, **kwargs):
     """
     # _t1 and _t2 are ordered arrays
     # Check which array starts first
-    if _t1[0] > _t2[0]:
+    if len(_t1) > len(_t2):
         logger.info('Excenging time arrays to maintain the sequence...')
         _ttemp =  _t1
         _t1 = _t2
