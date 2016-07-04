@@ -117,15 +117,18 @@ def check_double_coinc(_t1, _t2, _e1, _e2, time_window, outfile):
                 if len(index)>1:
                     index = [np.amin(index)]
                 if switch == False:
-                    coinc_events.append((_t1[j], _e1[j], _t2[index], _e2[index]))
+                    coinc_events.append((_t1[j], _e1[j], _t2[index], \
+                                         _e2[index]))
                 else:
-                    coinc_events.append((_t2[index], _e2[index], _t1[j], _e1[j]))
+                    coinc_events.append((_t2[index], _e2[index], _t1[j], \
+                                         _e1[j]))
     logger.info('%i pairs of coincident events found!'%len(coinc_events))
     file_to_write = open(outfile, 'w')
     file_to_write.write('#FIRST CHANNEL\t#SECOND CHANNEL \n\n')
     file_to_write.write('#time - energy\t#time -  energy \n\n')
     for line in coinc_events:
-        file_to_write.write('%i %.2f\t%i %.2f\n' %(line[0], line[1], line[2], line[3]))
+        file_to_write.write('%i %.2f\t%i %.2f\n' %(line[0], line[1], line[2],\
+                                                   line[3]))
     file_to_write.close()
     logger.info('Created output file %s...'%outfile)
     return 0
@@ -260,9 +263,11 @@ def main():
     outfile = os.path.join(ADVLAB_DATA, 'test_outfile.dat')
     ch, t, e = process_data(outfile, [0,2])
     for i in range(0,len(ch[0])):
-        print 'ch: %i --> time: %i, spectrum ch: %i' %(ch[0][i], t[0][i], e[0][i])
+        print 'ch: %i --> time: %i, spectrum ch: %i' %(ch[0][i], t[0][i], \
+                                                       e[0][i])
     for i in range(0,len(ch[1])):
-        print 'ch: %i --> time: %i, spectrum ch: %i' %(ch[1][i], t[1][i], e[1][i])
+        print 'ch: %i --> time: %i, spectrum ch: %i' %(ch[1][i], t[1][i], \
+                                                       e[1][i])
 
 if __name__=='__main__':
     main()
