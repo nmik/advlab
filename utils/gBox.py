@@ -20,6 +20,7 @@ from advlab.utils.logging_ import logger
 MOB_RS_Y = 15
 MOB_RS_X = 0
 
+
 class gBox:
     """Class implementing the position of the box in the lab reference system
        given the position of the center of the box in the mobile reference sys.
@@ -52,7 +53,7 @@ class gBox:
         temp_point = temp_point[0]+ center[0] , temp_point[1]+center[1]
         return temp_point
 
-    def polygon_rotation(self, polygon, theta, degree=True):
+    def rotation(self, polygon, theta, degree=True):
         """Rotates the given polygon which consists of corners 
            represented as (x,y), around the ORIGIN, clock-wise, 
            theta degrees
@@ -68,6 +69,16 @@ class gBox:
             new_corner = self.point_rotation(center, corner, theta)
             rotated_polygon.append(new_corner)
         return rotated_polygon
+
+    def y_translation(self, polygon, delta_y):
+        """Function which translate along the y axis
+        """
+        new_polygon = []
+        for corn in polygon:
+            print corn[1]
+            new_corn = corn[0], corn[1]+delta_y
+            new_polygon.append(new_corn)
+        return new_polygon
 
     def get_box_corners_coord(self):
         """
@@ -86,8 +97,47 @@ class gBox:
         corn = self.get_box_corners_coord()
         logger.info('Corners coordinates: %s, %s, %s, %s'\
                     %(str(corn[0]),str(corn[1]),str(corn[2]),str(corn[3])))
+    
 
-    def draw(self, _corn, show=True):
+    def line_in_box(self, y_ref, polygon):
+        """
+        """
+        
+        def line_intersection(line1, line2):
+            """Return the intersection point between two lines if any
+            """
+            xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
+            ydiff = (line1[0][1] - line1[1][1], line2[0][1] - line2[1][1])
+            
+            def det(a, b):
+                return a[0] * b[1] - a[1] * b[0]
+
+            div = det(xdiff, ydiff)
+            if div == 0:
+                logger.info('Lines do not intersect!')
+                return None
+            d = (det(*line1), det(*line2))
+            x = det(d, xdiff) / div
+            y = det(d, ydiff) / div
+            return x, y
+
+        ref_line = [(-20, y_ref), (20, y_ref)]
+        box_side1 = [polygon[0], polygon[1]]
+        box_side2 = [polygon[1], polygon[2]]
+        box_side3 = [polygon[2], polygon[3]]
+        box_side4 = [polygon[3], polygon[0]]
+        (x1, y1) = line_intersection(ref_line, box_side1)
+        (x2, y2) = line_intersection(ref_line, box_side2)
+        (x3, y3) = line_intersection(ref_line, box_side3)
+        (x4, y4) = line_intersection(ref_line, box_side4)
+        print (x1, y1), (x2, y2), (x3, y3), (x4, y4)
+    
+    def draw_line_inside_box(self, line):
+        """
+        """
+        pass
+
+    def draw_box(self, _corn, show=True):
         """
         """
         plt.xlim(-10.,10.)
@@ -113,11 +163,16 @@ def main():
     box = gBox(XC, YC, a, b)
     _corn = box.get_box_corners_coord()
     box.print_center_coord()
-    _rot_corn = box.polygon_rotation(_corn, -20)
+    _rot_corn = box.rotation(_corn, 20)
+    _trans_rot_corn = box.y_translation(_rot_corn, 2.)
+
+    box.line_in_box(1., _trans_rot_corn)
+    
     plt.figure(figsize=(6, 6), dpi=80)
     plt.title('Box test')
-    box.draw(_corn, show=False)
-    box.draw(_rot_corn, show=False)
+    box.draw_box(_corn, show=False)
+    box.draw_box(_rot_corn, show=False)
+    box.draw_box(_trans_rot_corn, show=False)
     plt.show()
     
 
