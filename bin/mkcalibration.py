@@ -57,18 +57,20 @@ def mkcalibration(**kwargs):
     assert(kwargs['configfile'].endswith('.py'))
     get_var_from_file(kwargs['configfile'])
     infile = data.DATA_FILE
-    root_outfile = os.path.basename(kwargs['configfile']).replace('.py', '_CALIB.root')
+    root_outfile = os.path.basename(kwargs['configfile']).replace('.py', \
+                                                                  '_CALIB.root')
     AnalyseSpectra = data.AnalyseSpectra
     AnalyseCoincidence = data.AnalyseCoincidence
     RootAnalyseSpectra = data.RootAnalyseSpectra
     RootAnalyseCoincidence = data.RootAnalyseCoincidence
     label = data.SRC
     num_en_ch = data.TOT_NUM_EN_CH
-    nbins = num_en_ch/10
+    nbins = data.NBINS
     time_window = data.COINC_WINDOW
 
     ch, t, e = process_data(infile, [0,2])
-    coinc_file_name = os.path.basename(kwargs['configfile']).replace('.py', '_COINC.dat')
+    coinc_file_name = os.path.basename(kwargs['configfile']).replace('.py', \
+                                                                     '_COINC.dat')
     coinc_file = os.path.join(ADVLAB_OUT, coinc_file_name)
     check_double_coinc(t[0], t[1], e[0], e[1], time_window, coinc_file)
     t1, e1, t2, e2 = parse_coinc_data(coinc_file)
@@ -96,11 +98,14 @@ def mkcalibration(**kwargs):
         plt_figure = '%s_spectrum_ch0.png'%label
         save_current_figure(plt_figure, clear=False)
         #--------                      
+        from matplotlib.colors import LogNorm
         plt.figure(figsize=(10, 7), dpi=80)
         plt.title('%s Ch0 vs Ch2 (events in coincidence only)'%label)
         plt.xlabel('Ch 0')
         plt.ylabel('Ch 2')
-        plt.hist2d(e1, e2, bins=nbins)
+        plt.xlim(0, num_en_ch)
+        plt.ylim(0, num_en_ch)
+        plt.hist2d(e1, e2, bins=nbins)#, norm=LogNorm())
         plt.colorbar()
         overlay_tag()
         plt_figure = '%s_spectrum_ch0.png'%label
