@@ -81,8 +81,8 @@ def mkcalibration(**kwargs):
         plt.figure(figsize=(10, 7), dpi=80)
         plt.title('%s Spectrum Ch2'%label)
         plt.xlabel('channel')
-        build_spectrum_plt(e[1], nbins=nbins, label='chanel 1', color='red', \
-                           alpha=1)
+        build_spectrum_plt(e[1], bins=nbins, label='chanel 1', color='red', \
+                           alpha=1, range=(0,num_en_ch))
         plt.xlim(0,num_en_ch)
         overlay_tag()
         plt_figure = '%s_spectrum_ch2.png'%label
@@ -91,8 +91,8 @@ def mkcalibration(**kwargs):
         plt.figure(figsize=(10, 7), dpi=80)
         plt.title('%s Spectrum Ch0'%label)
         plt.xlabel('channel')
-        build_spectrum_plt(e[0], nbins=nbins, label='chanel 2', color='blue', \
-                       alpha=1.)
+        build_spectrum_plt(e[0], bins=nbins, range=(0,num_en_ch),\
+                           label='chanel 2', color='blue', alpha=1.)
         plt.xlim(0, num_en_ch)
         overlay_tag()
         plt_figure = '%s_spectrum_ch0.png'%label
@@ -105,10 +105,10 @@ def mkcalibration(**kwargs):
         plt.ylabel('Ch 2')
         plt.xlim(0, num_en_ch)
         plt.ylim(0, num_en_ch)
-        plt.hist2d(e1, e2, bins=nbins)#, norm=LogNorm())
+        plt.hist2d(e1, e2, bins=nbins, range=[(0,num_en_ch),(0,num_en_ch)])
         plt.colorbar()
         overlay_tag()
-        plt_figure = '%s_spectrum_ch0.png'%label
+        plt_figure = '%s_spectrum_ch0-ch2.png'%label
         save_current_figure(plt_figure, clear=False)
 
     #---------Draw Coincudence curve----------
