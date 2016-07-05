@@ -108,12 +108,15 @@ def channel2energy(_e, list_ref_points):
            while the sencond is the corresponding energy [given in MeV].
     """
     ch, en = [], [] 
-    ch.append(x[0] for x in list_ref_points)
-    en.append(x[1] for x in list_ref_points)
+    ch.append([x[0] for x in list_ref_points][0])
+    en.append([x[1] for x in list_ref_points][0])
+    print en
     ch = np.array(ch)
     en = np.array(en)
-    print 'provaaaaaa',np.polyfit(ch, en, 1)
-    en_array = _e
+    print ch
+    p = np.polyfit(ch, en, 1)
+
+    en_array = p[1] + _e*p[0]
     return en_array
 
 def check_double_coinc(_t1, _t2, _e1, _e2, time_window, outfile):
