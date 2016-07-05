@@ -33,7 +33,8 @@ def parse_data(file_path):
     ch = []
     t = []
     e = []
-    for line in open(file_path):
+    f = open(file_path).readlines()
+    for line in f[0:277459]:
         try:
             _ch, _t, _e, _boh1, _boh2 = [float(item) for item in line.split()]
             ch.append(_ch)
@@ -87,12 +88,12 @@ def build_spectrum_plt(_e, **kwargs):
     """Returns a histo (using matplotlib) with the energy spectrum of the gamma 
        emission from a ginven src
     """
-    nbins = kwargs['nbins']
-    h = plt.hist(_e, nbins, label=kwargs['label'], \
-                 color=kwargs['color'], alpha=kwargs['alpha'])
+    h = plt.hist(_e, bins=kwargs['bins'], label=kwargs['label'], \
+                 color=kwargs['color'], alpha=kwargs['alpha'],\
+                 range=kwargs['range'] )
     return h
     
-def channel2energy(_e, *arg):
+def channel2energy(_e, list_ref_points):
     """Calibrate the measure of energy in the channels
 
        Arguments
@@ -106,7 +107,12 @@ def channel2energy(_e, *arg):
            It is assumed that for each couple the first num is the channel
            while the sencond is the corresponding energy [given in MeV].
     """
-    
+    ch, en = [], [] 
+    ch.append(x[0] for x in list_ref_points)
+    en.append(x[1] for x in list_ref_points)
+    ch = np.array(ch)
+    en = np.array(en)
+    print 'provaaaaaa',np.polyfit(ch, en, 1)
     en_array = _e
     return en_array
 
