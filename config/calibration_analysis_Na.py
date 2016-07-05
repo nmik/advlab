@@ -24,6 +24,6 @@ RootAnalyseSpectra = False
 RootAnalyseCoincidence = False
 SRC = 'Na'
 TOT_NUM_EN_CH = 6000
-NBINS = 300
+NBINS = 100
 DATA_FILE = os.path.join(ADVLAB_DATA, 'run_gr2_20160630_Na.dat')
 COINC_WINDOW = 20
