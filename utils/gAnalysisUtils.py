@@ -82,8 +82,8 @@ def check_double_coinc(_t1, _t2, _e1, _e2, time_window, outfile):
        outfile : str
            output file name
     """
-    if os.path.exists(outfile.replace()):
-        logger.info('Already created %s'%outfile))
+    if os.path.exists(outfile):
+        logger.info('Already created %s'%outfile)
         return 0
     logger.info('Scanning the data to find coincidences...')
     switch = False
