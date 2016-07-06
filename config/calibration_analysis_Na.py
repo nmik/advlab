@@ -18,12 +18,12 @@ import os
 from advlab import ADVLAB_DATA
 
 
-AnalyseSpectra = True
+AnalyseSpectra = False
 AnalyseCoincidence = False
-RootAnalyseSpectra = False
+RootAnalyseSpectra = True
 RootAnalyseCoincidence = False
 SRC = 'Na'
-TOT_NUM_EN_CH = 6000
-NBINS = 100
+TOT_NUM_EN_CH = 16000
+NBINS = 400
 DATA_FILE = os.path.join(ADVLAB_DATA, 'run_gr2_20160630_Na.dat')
 COINC_WINDOW = 20
