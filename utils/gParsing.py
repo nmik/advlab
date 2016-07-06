@@ -25,7 +25,7 @@ def parse_data(file_path):
     e = []
     f = open(file_path).readlines()
     lim = int(len(f)/3)
-    for line in f[0:lim]:
+    for line in f[0:-1]:
         try:
             _ch, _t, _e, _boh1, _boh2 = [float(item) for item in line.split()]
             ch.append(_ch)
@@ -50,12 +50,9 @@ def parse_coinc_data(file_path):
     t2 = []
     e1 = []
     e2 = []
-    #print file_path
     for line in open(file_path):
-        #print line
         try:
             _t1, _e1, _t2, _e2 = [float(item) for item in line.split()]
-            #print _t1, _e1, _t2, _e2
             t1.append(_t1)
             t2.append(_t2)
             e1.append(_e1)
@@ -66,10 +63,6 @@ def parse_coinc_data(file_path):
     t2 = np.array(t2, dtype=np.int64)
     e1 = np.array(e1, dtype=np.int32)
     e2 = np.array(e2, dtype=np.int32)
-    print t1
-    print e1
-    print t2
-    print e2
     return t1, e1, t2, e2
 
 def process_data(file_path, num_of_channels):
