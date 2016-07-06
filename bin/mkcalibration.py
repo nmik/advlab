@@ -17,15 +17,15 @@ import ROOT
 import numpy
 import imp
 
-from advlab import ADVLAB_OUT
+from advlab import ADVLAB_OUT, ADVLAB_DATA
 from advlab.utils.logging_ import logger, startmsg
 from advlab.utils.gParsing import process_data
 from advlab.utils.gParsing import parse_coinc_data
-from advlab.utils.gParsing import build_spectrum
-from advlab.utils.gParsing import build_spectrum_plt
-from advlab.utils.gParsing import build_coinc_curve
-from advlab.utils.gParsing import build_coinc_curve_plt
-from advlab.utils.gParsing import check_double_coinc
+from advlab.utils.gAnalysisUtils import build_spectrum
+from advlab.utils.gAnalysisUtils import build_spectrum_plt
+from advlab.utils.gAnalysisUtils import build_coinc_curve
+from advlab.utils.gAnalysisUtils import build_coinc_curve_plt
+from advlab.utils.gAnalysisUtils import check_double_coinc
 from advlab.utils.gRootUtils import gRootCanvas
 from advlab.utils.gRootUtils import gRootLegend
 from advlab.utils.matplotlib_ import pyplot as plt
@@ -57,8 +57,10 @@ def mkcalibration(**kwargs):
     assert(kwargs['configfile'].endswith('.py'))
     get_var_from_file(kwargs['configfile'])
     infile = data.DATA_FILE
-    root_outfile = os.path.basename(kwargs['configfile']).replace('.py', \
-                                                                  '_CALIB.root')
+    assert(infile.endswith('.dat'))
+    root_outfile_name = os.path.basename(infile.replace('.dat', \
+                                                        '_CALIB.root'))
+    root_outfile =  os.path.join(ADVLAB_OUT, root_outfile_name)
     AnalyseSpectra = data.AnalyseSpectra
     AnalyseCoincidence = data.AnalyseCoincidence
     RootAnalyseSpectra = data.RootAnalyseSpectra
@@ -69,9 +71,9 @@ def mkcalibration(**kwargs):
     time_window = data.COINC_WINDOW
 
     ch, t, e = process_data(infile, [0,2])
-    coinc_file_name = os.path.basename(kwargs['configfile']).replace('.py', \
-                                                                     '_COINC.dat')
-    coinc_file = os.path.join(ADVLAB_OUT, coinc_file_name)
+    coinc_file_name = os.path.basename(infile.replace('.dat', \
+                                                      '_COINC.dat'))
+    coinc_file = os.path.join(ADVLAB_DATA, coinc_file_name)
     check_double_coinc(t[0], t[1], e[0], e[1], time_window, coinc_file)
     t1, e1, t2, e2 = parse_coinc_data(coinc_file)
     
@@ -105,7 +107,7 @@ def mkcalibration(**kwargs):
         plt.ylabel('Ch 2')
         plt.xlim(0, num_en_ch)
         plt.ylim(0, num_en_ch)
-        plt.hist2d(e1, e2, bins=nbins, range=[(0,num_en_ch),(0,num_en_ch)])
+        plt.hist2d(e1, e2, bins=nbins, range=[(0,num_en_ch),(0,num_en_ch)], norm=LogNorm())
         plt.colorbar()
         overlay_tag()
         plt_figure = '%s_spectrum_ch0-ch2.png'%label
@@ -133,13 +135,13 @@ def mkcalibration(**kwargs):
     if RootAnalyseSpectra == True or RootAnalyseCoincidence == True:
         f = ROOT.TFile(root_outfile, 'RECREATE')
     if RootAnalyseSpectra == True:
-        h1 = build_spectrum('%s_channel_0'%label, e[0], TOT_NUM_EN_CH)  
-        h2 = build_spectrum('%s_channel_1'%label, e[1], TOT_NUM_EN_CH)
+        h1 = build_spectrum('%s_channel_0'%label, e[0], num_en_ch)  
+        h2 = build_spectrum('%s_channel_1'%label, e[1], num_en_ch)
         # should there be the check of the coincidence here
-        hh = ROOT.TH2F('%s_scatter'%label,'%s'%label, nbins, 0, TOT_NUM_EN_CH, \
-                       nbins, 0, TOT_NUM_EN_CH)
-        for i,e0 in enumerate(e[0]):
-            hh.Fill(e[0][i], e[1][i])
+        hh = ROOT.TH2F('%s_scatter'%label,'%s'%label, nbins, 0, num_en_ch, \
+                       nbins, 0, num_en_ch)
+        for i,e0 in enumerate(e1):
+            hh.Fill(e1[i], e2[i])
         h1.Write()
         h2.Write()
         hh.Write()
