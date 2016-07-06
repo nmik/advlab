@@ -14,11 +14,9 @@ import numpy as np
 import ROOT
 
 from advlab.utils.logging_ import logger
-from advlab.utils.matplotlib_ import pyplot as plt
 from advlab.utils.gParsing import process_data
-from advlab.utils.gParsing import channel2energy
-from advlab.utils.gParsing import check_double_coinc
-from advlab.utils.logging_ import logger
+from advlab.utils.gAnalysisUtils import channel2energy
+from advlab.utils.gAnalysisUtils import check_double_coinc
 from advlab.utils.matplotlib_ import pyplot as plt
 from advlab.utils.matplotlib_ import overlay_tag, save_current_figure
 from advlab import ADVLAB_DATA
@@ -26,8 +24,7 @@ from advlab import ADVLAB_OUT
 
 
 TOT_NUM_EN_CH = 15000 #2**(14-1)
-DATA_FILE_NAME = {'delay25ns':'run_gr2_20160630_Na.dat',
-                  'delay25ns_3h':'run_gr2_20160630_delay25ns_3h.dat'}
+
 
 
 def draw_en_calib_curves(list_channel_names, list_channel_arrays, \
@@ -51,19 +48,13 @@ def draw_en_calib_curves(list_channel_names, list_channel_arrays, \
         plt.show()
 
 
-label = 'delay25ns'
-outfile_name = DATA_FILE_NAME[label]
-outfile = os.path.join(ADVLAB_DATA, outfile_name)
-ch, t, e = process_data(outfile, [0,2])
-calib_ch0 = [(1917,0.356),(466,0.08),(2721,0.0511),(6594,1.27),(3504,0.662),\
-             (6044,1.17),(6843,1.33)]
-calib_ch2 = [(2022,0.356),(496,0.08),(2846,0.0511),(6906,1.27),(3674,0.662),\
-             (6362,1.17),(7214,1.33)]
-_energies_ch0 = channel2energy(e[0], calib_ch0)
-_energies_ch2 = channel2energy(e[1], calib_ch2)
-print _energies_ch0
-print _energies_ch2
+infile_name = 'run_gr2_20160630_Na.dat'
+infile = os.path.join(ADVLAB_DATA, infile_name)
+ch, t, e = process_data(infile, [0,2])
+_e0_mev = channel2energy(e[0], 0)
+_e2_mev = channel2energy(e[1], 2)
+
 # testing draw_en_calib_curves function
 draw_en_calib_curves(['Channel 0','Channel 2'], [e[0],e[1]], \
-                     [_energies_ch0, _energies_ch2], show=True)
+                     [_e0_mev, _e2_mev], show=True)
 
