@@ -107,7 +107,7 @@ def mkcalibration(**kwargs):
         plt.ylabel('Ch 2')
         plt.xlim(0, num_en_ch)
         plt.ylim(0, num_en_ch)
-        plt.hist2d(e1, e2, bins=nbins, range=[(0,num_en_ch),(0,num_en_ch)], norm=LogNorm())
+        plt.hist2d(e1, e2, bins=nbins, range=[(0,num_en_ch),(0,num_en_ch)])#, norm=LogNorm())
         plt.colorbar()
         overlay_tag()
         plt_figure = '%s_spectrum_ch0-ch2.png'%label
