@@ -9,24 +9,158 @@
 #                                                                              #
 #------------------------------------------------------------------------------#
 
+"""Utilities to make the Imaging
+"""
+
 import os
 import math
 import numpy as np
+import ROOT
+from scipy.interpolate import griddata
 
+from advlab import ADVLAB_OUT
+from advlab import ADVLAB_DATA
 from advlab.utils.matplotlib_ import pyplot as plt
+from advlab.utils.matplotlib_ import overlay_tag, save_current_figure
 from advlab.utils.logging_ import logger
+from advlab.utils.gAnalysisUtils import check_double_coinc
+from advlab.utils.gAnalysisUtils import channel2energy
+from advlab.utils.gParsing import process_data
+from advlab.utils.gParsing import parse_coinc_data
 
 # Coordinates of the mobile RS in the Lab RS.
-MOB_RS_Y = 15
+MOB_RS_Y = 150 #mm
 MOB_RS_X = 0
 
+def get_m_q(line):
+    m = (line[1][1]-line[0][1])/(line[1][0]-line[0][0])
+    q = line[0][1]-m*line[0][0]
+    return m, q
+
+def imaging(lines_list, rate_list, x_side, y_side, gran=1):
+    """perform the imaging of the gamma-ray emission from sources 
+       inside the red box
+    """
+    #x_grid = np.linspace(-x_side/2, x_side/2, x_side)
+    f = ROOT.TFile('output/imaging.root', 'RECREATE')
+    xh_low, xh_high = -x_side/2, x_side/2
+    yh_low, yh_high = -y_side/2, y_side/2
+    xh_bins = np.linspace(xh_low, xh_high, (x_side/5)*2*gran)
+    yh_bins = np.linspace(yh_low, yh_high, (y_side/5)*2*gran)
+    xh_nbins = len(xh_bins)
+    yh_nbins = len(yh_bins)
+    print  xh_nbins,  yh_nbins
+    hh = ROOT.TH2F('pet', 'pet', xh_nbins, xh_low, xh_high, yh_nbins, yh_low, yh_high)
+    for i in range(-xh_nbins/2, xh_nbins/2):
+        for j in range(-yh_nbins/2, yh_nbins/2):
+            hh.Fill(i,j,1)
+    print 'histo bins: ',hh.GetYaxis().GetNbins()
+    for i,line in enumerate(lines_list):
+        m, q = get_m_q(line)
+        _x = xh_bins
+        _y = _x*m + q
+        _mask = (_y<=yh_high)&(_y>=yh_low)
+        _x = _x[_mask]
+        _y = _y[_mask]
+        #x = [x[0] for x in line]
+        #y = [y[1] for y in line]
+        #yint = np.interp(x_grid, x, y)
+        w = rate_list[i]
+        for i, x in enumerate(_x):
+            bx = hh.GetXaxis().FindBin(x)
+            by = hh.GetYaxis().FindBin(_y[i])
+            new_w = hh.GetBinContent(bx,by)+w
+            hh.SetBinContent(bx,by,new_w)
+            for zx in range(bx-gran, bx+gran):
+                if zx == 0 or zx < 0:
+                    continue
+                for zy in range(by-gran, by+gran):
+                    if zy == 0 or zy < 0:
+                        continue
+                    new_w = hh.GetBinContent(zx,zy)+w
+                    hh.SetBinContent(zx,zy,new_w)
+    hh.Draw('COLZ')
+    hh.Write()
+    f.Close()
+     
+def build_rate_hist(th_label, infile_list, yref_list):
+    """
+    """
+    rate_list = []
+    ncoinc_list = []
+    for f in infile_list:
+        ch, t, e = process_data(f, [0,2])
+        coinc_file_name = os.path.basename(f.replace('.dat', '_COINC.dat'))
+        coinc_file = os.path.join(ADVLAB_DATA, coinc_file_name)
+        check_double_coinc(t[0], t[1], e[0], e[1], 10, coinc_file)
+        t1, e1, t2, e2 = parse_coinc_data(coinc_file)
+        e1_mev = channel2energy(e1, 0)
+        e2_mev = channel2energy(e2, 2)
+        _mask0 = (e1_mev < 1.) & (e1_mev > 0.1) 
+        _mask2 = (e2_mev < 1.) & (e2_mev > 0.1)
+        _mask = _mask0 & _mask2
+        t1_w, e1_mev_w, t2_w, e2_mev_w = t1[_mask], e1_mev[_mask], t2[_mask],\
+                                 e2_mev[_mask]
+        logger.info('%i/%i coincidences in the selected energy window' %\
+                    (len(t1_w),len(t1)))
+        num_coinc = len(t1_w)
+        time_interval = (t[0][-1] - t[0][0])/10000000
+        logger.info('effective time interval = %i s'%time_interval)
+        rate = float(num_coinc)/time_interval
+        logger.info('Rate = %.5f s^{-1}'%rate)
+        rate_list.append(rate)
+        ncoinc_list.append(num_coinc)
+    root_file_name = os.path.join(ADVLAB_OUT,'%s_scan.root'%th_label)
+    root_file = ROOT.TFile(root_file_name,\
+                           'RECREATE')
+    nbins = len(yref_list) - 1
+    y_min, y_max = yref_list[0], yref_list[-1] 
+    h = ROOT.TH1F(th_label, th_label, nbins, y_min , y_max)
+    ybox_list = []
+    for i, r in enumerate(ncoinc_list):
+        y = 65 - yref_list[i]
+        ybox_list.append(y)
+        h.Fill(y, r)
+    h.GetXaxis().SetTitle('y ref [mm]')
+    h.GetYaxis().SetTitle('Coincidences rate [s^{-1}]')
+    #yref_max = h.GetXaxis().GetBinCenter(h.GetMaximumBin())
+    #rate_max = h.GetBinContent(h.GetMaximumBin())
+    h.Write()
+    root_file.Close()
+    logger.info('Created %s'%root_file_name)
+    return ybox_list, ncoinc_list
+
+def point_rotation(center, point, theta):
+    """Rotates a point around another centerPoint. Angle is in degrees.
+       Rotation is counter-clockwise
+    """
+    temp_point = point[0]-center[0], point[1]-center[1]
+    temp_point = (temp_point[0]*np.cos(theta)-temp_point[1]*np.sin(theta),\
+                  temp_point[0]*np.sin(theta)+temp_point[1]*np.cos(theta))
+    temp_point = temp_point[0]+ center[0] , temp_point[1]+center[1]
+    return temp_point
+
+def line_lab2box(_x, _y, box_origin_in_lab, theta):
+        """
+        """
+        points = [x,y in zip(_x, _y)]
+        print points
+        rot_points = []
+        for p in points:
+            r_p = point_rotation((MOB_RS_X, MOB_RS_Y), p, -theta)
+            rot_points.append(r_p)
+        print rot_points
+        _rx = [x[0] for x in rot_point if x[0]]
+        _ry = [x[1] for x in rot_point if x[1]]
+        print _rx, _ry
+        
 
 class gBox:
     """Class implementing the position of the box in the lab reference system
        given the position of the center of the box in the mobile reference sys.
     """
 
-    def __init__(self, xc, yc, x_side_lenght, y_side_lenght):
+    def __init__(self, xc, yc, x_side_lenght, y_side_lenght, theta):
         """Constructor.
         
            Arguments
@@ -36,57 +170,61 @@ class gBox:
            yc : float
                The y coordinate of the center of the box in the mobile RS
         """
+        self.theta = theta
+        self.xc = xc
+        self.yc = yc
+        self.xc_boxrs = x_side_lenght/2
+        self.xc_boxrs = y_side_lenght/2
+        self.x_side_lenght = x_side_lenght
+        self.y_side_lenght = y_side_lenght
         self.xc_lab = xc + MOB_RS_X
         self.yc_lab = yc + MOB_RS_Y
-        self.lowlx = xc - x_side_lenght/2
-        self.lowly = yc - y_side_lenght/2
-        self.highlx = xc + x_side_lenght/2
-        self.highly = yc + y_side_lenght/2
-    
-    def point_rotation(self, center, point, theta):
-        """Rotates a point around another centerPoint. Angle is in degrees.
-           Rotation is counter-clockwise
-        """
-        temp_point = point[0]-center[0], point[1]-center[1]
-        temp_point = (temp_point[0]*np.cos(theta)-temp_point[1]*np.sin(theta),\
-                      temp_point[0]*np.sin(theta)+temp_point[1]*np.cos(theta))
-        temp_point = temp_point[0]+ center[0] , temp_point[1]+center[1]
-        return temp_point
+        self.ll = point_rotation((MOB_RS_X, MOB_RS_X), \
+                                      (self.xc_lab - x_side_lenght/2, \
+                                       self.yc_lab - y_side_lenght/2), theta)
+        self.hl = point_rotation((MOB_RS_X, MOB_RS_X), \
+                                      (self.xc_lab + x_side_lenght/2, \
+                                       self.yc_lab - y_side_lenght/2), theta)
+        self.hh = point_rotation((MOB_RS_X, MOB_RS_X), \
+                                      (self.xc_lab + x_side_lenght/2, \
+                                       self.yc_lab +  y_side_lenght/2), theta)
+        self.lh = point_rotation((MOB_RS_X, MOB_RS_X), \
+                                      (self.xc_lab - x_side_lenght/2, \
+                                       self.yc_lab + y_side_lenght/2), theta)
+        
 
-    def rotation(self, polygon, theta, degree=True):
+    def rotation(self, new_theta, degree=True):
         """Rotates the given polygon which consists of corners 
            represented as (x,y), around the ORIGIN, clock-wise, 
            theta degrees
         """
-        logger.info('Rotating the box...')
+        logger.info('Rotating the box of %.2f degree...'%new_theta)
         if degree == True:
             logger.info('Converting degrees to radians...')
-            theta = np.radians(theta)
-        #theta = theta + np.pi/2
-        rotated_polygon = []
-        for corner in polygon :
-            center = MOB_RS_X, MOB_RS_X
-            new_corner = self.point_rotation(center, corner, theta)
-            rotated_polygon.append(new_corner)
-        return rotated_polygon
+            new_theta = np.radians(new_theta)
+        new_box = gBox(self.xc, self.yc, self.x_side_lenght, \
+                       self.y_side_lenght, new_theta)
+        new_box.print_center_coord()
+        return new_box
 
-    def y_translation(self, polygon, delta_y):
+    def y_translation(self, delta_y):
         """Function which translate along the y axis
         """
-        new_polygon = []
-        for corn in polygon:
-            print corn[1]
-            new_corn = corn[0], corn[1]+delta_y
-            new_polygon.append(new_corn)
-        return new_polygon
+        logger.info('Translating the box along the y axis of %.2f units' \
+                    %delta_y)
+        new_yc = self.yc + delta_y
+        new_box = gBox(self.xc, new_yc, self.x_side_lenght, \
+                       self.y_side_lenght, self.theta)
+        new_box.print_center_coord()
+        return new_box
 
     def get_box_corners_coord(self):
         """
         """
-        ll = (self.lowlx, self.lowly)
-        hl = (self.highlx, self.lowly)
-        hh = (self.highlx, self.highly)
-        lh = (self.lowlx, self.highly)
+        ll = self.ll
+        hl = self.hl
+        hh = self.hh
+        lh = self.lh
         return [ll, hl, hh, lh]
 
     def print_center_coord(self):
@@ -95,19 +233,21 @@ class gBox:
         logger.info('Box center coordinates in the Lab RS: (%.2f,%.2f)' \
                     %(self.xc_lab, self.yc_lab))
         corn = self.get_box_corners_coord()
-        logger.info('Corners coordinates: %s, %s, %s, %s'\
-                    %(str(corn[0]),str(corn[1]),str(corn[2]),str(corn[3])))
+        logger.info('Corners coordinates:')
+        logger.info('(%.2f,%.2f), (%.2f,%.2f), (%.2f,%.2f), (%.2f,%.2f)'\
+                    %(self.ll[0], self.ll[1], self.hl[0], self.hl[1], \
+                      self.hh[0], self.hh[1], self.lh[0], self.lh[1]))
     
 
-    def line_in_box(self, y_ref, polygon):
+    def line_in_box(self, y_ref):
         """
         """
         
-        def line_intersection(line1, line2):
+        def line_intersection(line, box_side):
             """Return the intersection point between two lines if any
             """
-            xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
-            ydiff = (line1[0][1] - line1[1][1], line2[0][1] - line2[1][1])
+            xdiff = (box_side[0][0] - box_side[1][0], line[0][0] - line[1][0])
+            ydiff = (box_side[0][1] - box_side[1][1], line[0][1] - line[1][1])
             
             def det(a, b):
                 return a[0] * b[1] - a[1] * b[0]
@@ -115,40 +255,43 @@ class gBox:
             div = det(xdiff, ydiff)
             if div == 0:
                 logger.info('Lines do not intersect!')
-                return None
-            d = (det(*line1), det(*line2))
+                return None, None
+            d = (det(*box_side), det(*line))
             x = det(d, xdiff) / div
             y = det(d, ydiff) / div
             return x, y
 
         ref_line = [(-20, y_ref), (20, y_ref)]
-        box_side1 = [polygon[0], polygon[1]]
-        box_side2 = [polygon[1], polygon[2]]
-        box_side3 = [polygon[2], polygon[3]]
-        box_side4 = [polygon[3], polygon[0]]
-        (x1, y1) = line_intersection(ref_line, box_side1)
-        (x2, y2) = line_intersection(ref_line, box_side2)
-        (x3, y3) = line_intersection(ref_line, box_side3)
-        (x4, y4) = line_intersection(ref_line, box_side4)
-        print (x1, y1), (x2, y2), (x3, y3), (x4, y4)
-    
-    def draw_line_inside_box(self, line):
-        """
-        """
-        pass
+        box_side1 = [self.ll, self.hl]
+        box_side2 = [self.hl, self.hh]
+        box_side3 = [self.hh, self.lh]
+        box_side4 = [self.lh, self.ll]
+        print 'side 1'
+        x1, y1 = line_intersection(ref_line, box_side1)
+        print 'side 2'
+        x2, y2 = line_intersection(ref_line, box_side2)
+        print 'side 3'
+        x3, y3 = line_intersection(ref_line, box_side3)
+        print 'side 4'
+        x4, y4 = line_intersection(ref_line, box_side4)
+        intersec = [(x1, y1), (x2, y2), (x3, y3), (x4, y4)]
+        _x = [x[0] for x in intersec if x[0] is not None]
+        _y = [x[1] for x in intersec if x[1] is not None]
+        return _x, _y
+        
 
-    def draw_box(self, _corn, show=True):
+    def draw_box(self, show=True):
         """
         """
-        plt.xlim(-10.,10.)
-        plt.ylim(-10.,10.)
-        plt.plot([_corn[0][0],_corn[1][0]], [_corn[0][1],_corn[1][1]], \
+        plt.xlim(-15.,15.)
+        plt.ylim(0., 30.)
+        plt.plot((self.ll[0], self.hl[0]), (self.ll[1], self.hl[1]), \
                  'k-', lw=2, color='red')
-        plt.plot([_corn[1][0],_corn[2][0]], [_corn[1][1],_corn[2][1]], \
+        plt.plot((self.hl[0], self.hh[0]), (self.hl[1], self.hh[1]), \
                  'k-', lw=2, color='red')
-        plt.plot([_corn[3][0],_corn[2][0]], [_corn[3][1],_corn[2][1]], \
+        plt.plot((self.hh[0], self.lh[0]), (self.hh[1], self.lh[1]), \
                  'k-', lw=2, color='red')
-        plt.plot([_corn[0][0],_corn[3][0]], [_corn[0][1],_corn[3][1]], \
+        plt.plot((self.lh[0], self.ll[0]), (self.lh[1], self.ll[1]), \
                  'k-', lw=2, color='red')
         if show == True:
             plt.show()
@@ -158,21 +301,21 @@ def main():
     """
     a = 5.
     b = 3.
-    XC = a/2.
-    YC = b/2.
-    box = gBox(XC, YC, a, b)
+    XC = 0.
+    YC = 0.
+    box = gBox(XC, YC, a, b, 0.)
     _corn = box.get_box_corners_coord()
     box.print_center_coord()
-    _rot_corn = box.rotation(_corn, 20)
-    _trans_rot_corn = box.y_translation(_rot_corn, 2.)
-
-    box.line_in_box(1., _trans_rot_corn)
-    
     plt.figure(figsize=(6, 6), dpi=80)
+    box.draw_box(show=False)
+    box_r = box.rotation(20.)
+    box_t = box_r.y_translation(5.)
+    box_r.draw_box(show=False)
+    box_t.draw_box(show=False)
+    _x, _y = box.line_in_box(150)
+    line_lab2box(_x, _y, (-a/2, MOB_RS_Y-b/2), 0.)
+    plt.plot(_x, _y)
     plt.title('Box test')
-    box.draw_box(_corn, show=False)
-    box.draw_box(_rot_corn, show=False)
-    box.draw_box(_trans_rot_corn, show=False)
     plt.show()
     
 
