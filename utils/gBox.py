@@ -37,24 +37,41 @@ def get_m_q(line):
     q = line[0][1]-m*line[0][0]
     return m, q
 
-def imaging(lines_list, rate_list, x_side, y_side, gran=1):
+def rotate_line(line, theta):
+    """Rotate a line around its center 
+    """
+    if theta == 0:
+        return line
+    line_c = ((line[0][0]+line[1][0])/2, (line[0][1]+line[1][1])/2)
+    theta = np.radians(theta)
+    linet = ((line[0][0]-line_c[0],line[0][1]-line_c[1]),
+             (line[1][0]-line_c[0],line[1][1]-line_c[1]))
+    new_linet = (np.cos(theta)*line[0][0]-np.sin(theta)*line[0][1],\
+                np.sin(theta)*line[0][0]+np.cos(theta)*line[0][1]),\
+        (np.cos(theta)*line[1][0]-np.sin(theta)*line[1][1],\
+         np.sin(theta)*line[1][0]+np.cos(theta)*line[1][1])
+    new_line = ((new_linet[0][0]+line_c[0],new_linet[0][1]+line_c[1]),
+             (new_linet[1][0]+line_c[0],new_linet[1][1]+line_c[1]))
+    return new_linet
+
+def imaging(lines_list, rate_list, x_side, y_side, gran=1, outfile='imaging.root'):
     """perform the imaging of the gamma-ray emission from sources 
        inside the red box
     """
-    #x_grid = np.linspace(-x_side/2, x_side/2, x_side)
-    f = ROOT.TFile('output/imaging.root', 'RECREATE')
+    f = ROOT.TFile(os.path.join(ADVLAB_OUT,outfile), 'RECREATE')
     xh_low, xh_high = -x_side/2, x_side/2
     yh_low, yh_high = -y_side/2, y_side/2
     xh_bins = np.linspace(xh_low, xh_high, (x_side/5)*2*gran)
     yh_bins = np.linspace(yh_low, yh_high, (y_side/5)*2*gran)
     xh_nbins = len(xh_bins)
     yh_nbins = len(yh_bins)
-    print  xh_nbins,  yh_nbins
-    hh = ROOT.TH2F('pet', 'pet', xh_nbins, xh_low, xh_high, yh_nbins, yh_low, yh_high)
+    hh = ROOT.TH2F('pet', 'Sources imaging', xh_nbins, xh_low, xh_high, yh_nbins, 
+                   yh_low, yh_high)
+    hh.GetXaxis().SetTitle('x [mm]')
+    hh.GetYaxis().SetTitle('y [mm]')
     for i in range(-xh_nbins/2, xh_nbins/2):
         for j in range(-yh_nbins/2, yh_nbins/2):
             hh.Fill(i,j,1)
-    print 'histo bins: ',hh.GetYaxis().GetNbins()
     for i,line in enumerate(lines_list):
         m, q = get_m_q(line)
         _x = xh_bins
@@ -62,9 +79,6 @@ def imaging(lines_list, rate_list, x_side, y_side, gran=1):
         _mask = (_y<=yh_high)&(_y>=yh_low)
         _x = _x[_mask]
         _y = _y[_mask]
-        #x = [x[0] for x in line]
-        #y = [y[1] for y in line]
-        #yint = np.interp(x_grid, x, y)
         w = rate_list[i]
         for i, x in enumerate(_x):
             bx = hh.GetXaxis().FindBin(x)
@@ -82,6 +96,7 @@ def imaging(lines_list, rate_list, x_side, y_side, gran=1):
     hh.Draw('COLZ')
     hh.Write()
     f.Close()
+    logger.info('Created %s'%os.path.join(ADVLAB_OUT,outfile))
      
 def build_rate_hist(th_label, infile_list, yref_list):
     """
@@ -110,21 +125,21 @@ def build_rate_hist(th_label, infile_list, yref_list):
         logger.info('Rate = %.5f s^{-1}'%rate)
         rate_list.append(rate)
         ncoinc_list.append(num_coinc)
-    root_file_name = os.path.join(ADVLAB_OUT,'%s_scan.root'%th_label)
-    root_file = ROOT.TFile(root_file_name,\
-                           'RECREATE')
+    root_file_name = os.path.join(ADVLAB_OUT,'y_scan.root')
+    if not os.path.exists(root_file_name):
+        root_file = ROOT.TFile(root_file_name,'RECREATE')
+    else:
+        root_file = ROOT.TFile(root_file_name,'UPDATE')
     nbins = len(yref_list) - 1
-    y_min, y_max = yref_list[0], yref_list[-1] 
+    y_min, y_max = 67.5 - yref_list[0], 67.5 - yref_list[-1]
     h = ROOT.TH1F(th_label, th_label, nbins, y_min , y_max)
     ybox_list = []
-    for i, r in enumerate(ncoinc_list):
-        y = 65 - yref_list[i]
+    for i, c in enumerate(ncoinc_list):
+        y = 67.5 - yref_list[i]
         ybox_list.append(y)
-        h.Fill(y, r)
-    h.GetXaxis().SetTitle('y ref [mm]')
-    h.GetYaxis().SetTitle('Coincidences rate [s^{-1}]')
-    #yref_max = h.GetXaxis().GetBinCenter(h.GetMaximumBin())
-    #rate_max = h.GetBinContent(h.GetMaximumBin())
+        h.Fill(y, c)
+    h.GetXaxis().SetTitle('y [mm]')
+    h.GetYaxis().SetTitle('Number of Coincidences')
     h.Write()
     root_file.Close()
     logger.info('Created %s'%root_file_name)
