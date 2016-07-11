@@ -37,24 +37,30 @@ def get_m_q(line):
     q = line[0][1]-m*line[0][0]
     return m, q
 
+def mkline(ybox, theta):
+    line = (-39.5, ybox), (39.5, ybox)
+    r_line = rotate_line(line, theta)
+    return r_line
+
 def rotate_line(line, theta):
     """Rotate a line around its center 
     """
     if theta == 0:
         return line
-    line_c = ((line[0][0]+line[1][0])/2, (line[0][1]+line[1][1])/2)
+    #line_c = ((line[0][0]+line[1][0])/2, (line[0][1]+line[1][1])/2)
     theta = np.radians(theta)
-    linet = ((line[0][0]-line_c[0],line[0][1]-line_c[1]),
-             (line[1][0]-line_c[0],line[1][1]-line_c[1]))
-    new_linet = (np.cos(theta)*line[0][0]-np.sin(theta)*line[0][1],\
-                np.sin(theta)*line[0][0]+np.cos(theta)*line[0][1]),\
-        (np.cos(theta)*line[1][0]-np.sin(theta)*line[1][1],\
-         np.sin(theta)*line[1][0]+np.cos(theta)*line[1][1])
-    new_line = ((new_linet[0][0]+line_c[0],new_linet[0][1]+line_c[1]),
-             (new_linet[1][0]+line_c[0],new_linet[1][1]+line_c[1]))
+    #linet = ((line[0][0]-line_c[0],line[0][1]-line_c[1]),
+    #         (line[1][0]-line_c[0],line[1][1]-line_c[1]))
+    new_linet = (np.cos(-theta)*line[0][0]-np.sin(-theta)*line[0][1],\
+                np.sin(-theta)*line[0][0]+np.cos(-theta)*line[0][1]),\
+        (np.cos(-theta)*line[1][0]-np.sin(-theta)*line[1][1],\
+         np.sin(-theta)*line[1][0]+np.cos(-theta)*line[1][1])
+    #new_line = ((new_linet[0][0]+line_c[0],new_linet[0][1]+line_c[1]),
+    #         (new_linet[1][0]+line_c[0],new_linet[1][1]+line_c[1]))
     return new_linet
 
-def imaging(lines_list, rate_list, x_side, y_side, gran=1, outfile='imaging.root'):
+def imaging(lines_list, rate_list, x_side, y_side, gran=1, \
+            outfile='imaging.root'):
     """perform the imaging of the gamma-ray emission from sources 
        inside the red box
     """
@@ -65,8 +71,8 @@ def imaging(lines_list, rate_list, x_side, y_side, gran=1, outfile='imaging.root
     yh_bins = np.linspace(yh_low, yh_high, (y_side/5)*2*gran)
     xh_nbins = len(xh_bins)
     yh_nbins = len(yh_bins)
-    hh = ROOT.TH2F('pet', 'Sources imaging', xh_nbins, xh_low, xh_high, yh_nbins, 
-                   yh_low, yh_high)
+    hh = ROOT.TH2F('pet', 'Sources imaging', xh_nbins, xh_low, xh_high, \
+                   yh_nbins, yh_low, yh_high)
     hh.GetXaxis().SetTitle('x [mm]')
     hh.GetYaxis().SetTitle('y [mm]')
     for i in range(-xh_nbins/2, xh_nbins/2):
