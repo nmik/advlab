@@ -18,13 +18,11 @@ import os
 import numpy as np
 
 from advlab import ADVLAB_DATA
-from advlab.utils.logging_ import logger
-from advlab.utils.gBox import build_rate_hist
 
 SIDEX = 80
 SIDEY = 55
 
-OUTFILE = 'test_imaging.root'
+OUTFILE = 'redbox_imaging.root'
 INFILES = np.array([os.path.join(ADVLAB_DATA, 'scan_0_40.dat'),
                     os.path.join(ADVLAB_DATA, 'scan_0_45.dat'),
                     os.path.join(ADVLAB_DATA, 'scan_0_50.dat'),
