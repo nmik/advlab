@@ -20,6 +20,7 @@ import re
 import imp
 
 from advlab import ADVLAB_DATA
+from advlab import ADVLAB_OUT
 from advlab.utils.matplotlib_ import pyplot as plt
 from advlab.utils.logging_ import logger, startmsg
 
@@ -67,6 +68,7 @@ def mkimaging(**kwargs):
     yref_list = np.array(yref_list)
     lines_list, coinc_list = [], []
     from advlab.utils.gBox import build_rate_hist
+    os.system('rm %s'%os.path.join(ADVLAB_OUT,'y_scan.root'))
     from advlab.utils.gBox import mkline
     for th in all_th:
         logger.info('List of angles scanned:')
