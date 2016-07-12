@@ -18,7 +18,7 @@ import os
 from advlab import ADVLAB_DATA
 
 
-AnalyseSpectra = False
+AnalyseSpectra = True
 AnalyseCoincidence = False
 RootAnalyseSpectra = True
 RootAnalyseCoincidence = False
