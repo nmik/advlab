@@ -87,7 +87,6 @@ def check_double_coinc(_t1, _t2, _e1, _e2, time_window, outfile):
         return 0
     logger.info('Scanning the data to find coincidences...')
     switch = False
-    print len(_t1), len(_t2)
     if len(_t1) > len(_t2):
         switch = True
         logger.info('Exchanging time arrays to maintain the sequence...')
@@ -98,7 +97,6 @@ def check_double_coinc(_t1, _t2, _e1, _e2, time_window, outfile):
         _e1 = _e2
         _e2 = _etemp
     coinc_events = []
-    print len(_t1), len(_t2)
     for j, t_min in enumerate(_t1):
         t_min = t_min - time_window/2
         t_max = t_min + time_window/2
