@@ -338,7 +338,6 @@ def main():
     plt.plot(_x, _y)
     plt.title('Box test')
     plt.show()
-    
 
 if __name__ == '__main__':
     main()
