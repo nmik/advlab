@@ -69,14 +69,13 @@ def mkcalibration(**kwargs):
     num_en_ch = data.TOT_NUM_EN_CH
     nbins = data.NBINS
     time_window = data.COINC_WINDOW
-
     ch, t, e = process_data(infile, [0,2])
     coinc_file_name = os.path.basename(infile.replace('.dat', \
                                                       '_COINC.dat'))
     coinc_file = os.path.join(ADVLAB_DATA, coinc_file_name)
+    logger.info('created %s'%coinc_file)
     check_double_coinc(t[0], t[1], e[0], e[1], time_window, coinc_file)
     t1, e1, t2, e2 = parse_coinc_data(coinc_file)
-    
     #-------------Draw Spectra---------------- 
     if AnalyseSpectra == True:
         logger.info('Analyzing Spectrum for %s source...'%label)
@@ -99,6 +98,7 @@ def mkcalibration(**kwargs):
         overlay_tag()
         plt_figure = '%s_spectrum_ch0.png'%label
         save_current_figure(plt_figure, clear=False)
+        plt.show()
         #--------                      
         from matplotlib.colors import LogNorm
         plt.figure(figsize=(10, 7), dpi=80)
