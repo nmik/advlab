@@ -29,13 +29,17 @@ def make_prediction(X, P, A):
 def make_update(X, P, Y, H): 
     """
     """
-    IM = dot(H, X)
-    IS = dot(H, dot(P, H.T)) 
-    K = dot(P, dot(H.T, inv(IS))) 
-    X = X + dot(K, (Y-IM))
-    P = P - dot(K, dot(IS, K.T)) 
-    LH = gauss_pdf(Y, IM, IS) 
-    return (X,P,K,IM,IS,LH)
+    IM = np.dot(H, X)
+    print H
+    print H.T
+    print np.dot(P, H.T)
+    IS = np.dot(H, np.dot(P, H.T)) 
+    print IS
+    print np.linalg.inv(IS)
+    K = np.dot(P, np.dot(H.T, np.linalg.inv(IS))) 
+    X = X + np.dot(K, (Y-IM))
+    P = P - np.dot(K, np.dot(IS, K.T)) 
+    return (X,P)
    
     
     
@@ -56,14 +60,16 @@ def main():
                   [1.0, 1.0, 1.0],
                   [1.0, 1.0, 1.0]])
     X_pred, P_pred = make_prediction(X, P, A)
-    print X_pred 
-    print P_pred
-    Y = np.array([[10.], [26.5], [1.]])
-    H = np.array([[None, None, None],
-                  [None, None, None],
-                  [None, None, None]])
-    R =
-    list = make_update(X_pred, P_pred, )
+    yp = 26.5 #always!!!
+    xp = 20. #change
+    up = 1. #change, defined as inverse of m
+    uv = up
+    Y = np.array([[xp], [up]])
+    H = np.array([[1, uv, yp],
+                  [0, 0, 1]])
+    list = make_update(X_pred, P_pred, Y, H)
+    for item in list:
+        print item
 
 
 if __name__=='__main__':
