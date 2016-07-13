@@ -18,6 +18,15 @@ from ROOT import *
 from advlab.utils.logging_ import logger
 from advlab.utils.matplotlib_ import pyplot as plt
 
+def find_peaks(_x, _y, threashold):
+    """to be finished
+    """
+    c = (np.diff(np.sign(np.diff(_y))) < 0).nonzero()[0] + 1 # local max
+    for i, index in enumerate(c):
+        if _y[index] < threashold:
+            np.delete(c, i)
+    return _x[c], _y[c]
+
 def build_spectrum(name, _e, tot_num_en_ch):
     """Returns a root THF1 with the energy spectrum of the gamma 
        emission from a ginven src
