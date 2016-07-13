@@ -20,10 +20,11 @@ from advlab import ADVLAB_DATA
 
 AnalyseSpectra = True
 AnalyseCoincidence = False
-RootAnalyseSpectra = True
+RootAnalyseSpectra = False
 RootAnalyseCoincidence = False
 SRC = 'Cs'
 TOT_NUM_EN_CH = 6000
 NBINS = 120
 DATA_FILE = os.path.join(ADVLAB_DATA, 'run_gr2_20160704_Cs.dat')
 COINC_WINDOW = 20
+
