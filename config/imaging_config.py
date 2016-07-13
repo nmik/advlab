@@ -23,6 +23,8 @@ SIDEX = 80
 SIDEY = 55
 
 OUTFILE = 'redbox_imaging.root'
+KF_OUTFILE = 'kf_test_lines.root'
+
 INFILES = np.array([os.path.join(ADVLAB_DATA, 'scan_0_40.dat'),
                     os.path.join(ADVLAB_DATA, 'scan_0_45.dat'),
                     os.path.join(ADVLAB_DATA, 'scan_0_50.dat'),
