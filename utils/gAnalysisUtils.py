@@ -15,6 +15,7 @@ import os
 import ROOT
 from ROOT import *
 
+from advlab import ADVLAB_OUT
 from advlab.utils.logging_ import logger
 from advlab.utils.matplotlib_ import pyplot as plt
 
@@ -22,10 +23,59 @@ def find_peaks(_x, _y, threashold):
     """to be finished
     """
     c = (np.diff(np.sign(np.diff(_y))) < 0).nonzero()[0] + 1 # local max
+    bad = []
     for i, index in enumerate(c):
         if _y[index] < threashold:
-            np.delete(c, i)
+            bad.append(i)
+    c = np.delete(c, bad)
     return _x[c], _y[c]
+
+def find_peaks_fit(fileName,isFit=True):
+    """
+    """
+    File1 = ROOT.TFile(fileName)
+    yList  = []
+    thList = []
+    for key in File1.GetListOfKeys():
+        thList.append((int(key.GetName().replace("th","")),\
+                       int(key.GetName().replace("th",""))))
+        h = File1.Get(key.GetName())
+        #h.Sumw2(ROOT.kTRUE)
+        print h.GetBinError(10)
+        peaks = []
+        for i in range(1,h.GetNbinsX()):
+            if h.GetBinContent(i-1)<h.GetBinContent(i) and  \
+               h.GetBinContent(i)>h.GetBinContent(i+1):
+                peaks.append((h.GetBinCenter(i),h.GetBinContent(i)))
+            if len(peaks)>2:
+                if peaks[0][1]<peaks[1][1] and peaks[0][1]<peaks[2][1]: 
+                    peaks.pop(0)
+                elif peaks[1][1]<peaks[0][1] and peaks[1][1]<peaks[2][1]: 
+                    peaks.pop(1)
+                elif peaks[2][1]<peaks[0][1] and peaks[2][1]<peaks[1][1]: 
+                    peaks.pop(2)
+        if len(peaks)==1: 
+            peaks.append(peaks[0])
+        if not isFit:
+            yList.append((peaks[0],peaks[1]))
+            continue
+        Max=h.GetXaxis().GetXmax()
+        Min=h.GetXaxis().GetXmin()
+        g1 = ROOT.TF1("g1","gaus",Min,Max)
+        g2 = ROOT.TF1("g2","gaus",Min,Max)
+        g1.SetParameter(1,peaks[0][0])
+        g1.SetParameter(2,6)
+        g2.SetParameter(1,peaks[1][0])
+        g2.SetParameter(2,6)
+        fSum = ROOT.TF1NormSum(g1,g2,800,800);
+        fTot = ROOT.TF1("total",fSum,Min,Max,fSum.GetNpar())
+        ParAr = np.array([fSum.GetParameters()[0],fSum.GetParameters()[1],
+                          fSum.GetParameters()[2],fSum.GetParameters()[3],
+                          fSum.GetParameters()[4],fSum.GetParameters()[5]])
+        fTot.SetParameters(ParAr)
+        h.Fit(fTot)
+        yList.append((fTot.GetParameter(2),fTot.GetParameter(4)))
+    return thList, yList
 
 def build_spectrum(name, _e, tot_num_en_ch):
     """Returns a root THF1 with the energy spectrum of the gamma 
