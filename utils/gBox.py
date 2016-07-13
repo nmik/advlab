@@ -47,17 +47,12 @@ def rotate_line(line, theta):
     """
     if theta == 0:
         return line
-    #line_c = ((line[0][0]+line[1][0])/2, (line[0][1]+line[1][1])/2)
     theta = np.radians(theta)
-    #linet = ((line[0][0]-line_c[0],line[0][1]-line_c[1]),
-    #         (line[1][0]-line_c[0],line[1][1]-line_c[1]))
-    new_linet = (np.cos(-theta)*line[0][0]-np.sin(-theta)*line[0][1],\
+    new_line = (np.cos(-theta)*line[0][0]-np.sin(-theta)*line[0][1],\
                 np.sin(-theta)*line[0][0]+np.cos(-theta)*line[0][1]),\
         (np.cos(-theta)*line[1][0]-np.sin(-theta)*line[1][1],\
          np.sin(-theta)*line[1][0]+np.cos(-theta)*line[1][1])
-    #new_line = ((new_linet[0][0]+line_c[0],new_linet[0][1]+line_c[1]),
-    #         (new_linet[1][0]+line_c[0],new_linet[1][1]+line_c[1]))
-    return new_linet
+    return new_line
 
 def imaging(lines_list, rate_list, x_side, y_side, gran=1, \
             outfile='imaging.root'):
