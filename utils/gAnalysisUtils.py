@@ -67,15 +67,16 @@ def find_peaks_fit(fileName,isFit=True):
         g1.SetParameter(2,6)
         g2.SetParameter(1,peaks[1][0])
         g2.SetParameter(2,6)
-        fSum = ROOT.TF1NormSum(g1,g2,800,800);
-        fTot = ROOT.TF1("total",fSum,Min,Max,fSum.GetNpar())
-        ParAr = np.array([fSum.GetParameters()[0],fSum.GetParameters()[1],
-                          fSum.GetParameters()[2],fSum.GetParameters()[3],
-                          fSum.GetParameters()[4],fSum.GetParameters()[5]])
-        fTot.SetParameters(ParAr)
+        fTot = ROOT.TF1( 'total', 'gaus(0)+gaus(3)', Min, Max )
+        par1 = g1.GetParameters()
+        par2 = g2.GetParameters()
+        par = array( 'd', 6*[0.] )
+        par[0], par[1], par[2] = par1[0], par1[1], par1[2]
+        par[3], par[4], par[5] = par2[0], par2[1], par2[2]
+        fTot.SetParameters( par )
         h.Fit(fTot)
-        yList.append((fTot.GetParameter(2),fTot.GetParameter(4)))
-    return thList, yList
+        yList.append(fTot.GetParameter(2),fTot.GetParameter(4))
+    return thList,yList
 
 def build_spectrum(name, _e, tot_num_en_ch):
     """Returns a root THF1 with the energy spectrum of the gamma 
