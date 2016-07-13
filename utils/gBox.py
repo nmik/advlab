@@ -296,7 +296,6 @@ class gBox:
         _y = [x[1] for x in intersec if x[1] is not None]
         return _x, _y
         
-
     def draw_box(self, show=True):
         """
         """
