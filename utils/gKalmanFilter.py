@@ -19,40 +19,51 @@ import os
 import numpy as np
 from advlab.utils.logging_ import logger
 
-
-class gTrueState:
+def make_prediction(X, P, A):
     """
     """
+    X = np.dot(A, X)
+    P = np.dot(A, np.dot(P, A.T))
+    return(X,P)
 
-    def __init__(self, seed):
-        """
-        """
-        pass
-        
-    def make_prediction(self):
-        """
-        """
-        pass
-
-    def update(self, prediction, measurement):
-        """
-        """
-        pass
-
-    def make_smoothing(self):
-        """
-        """
-        pass
+def make_update(X, P, Y, H): 
+    """
+    """
+    IM = dot(H, X)
+    IS = dot(H, dot(P, H.T)) 
+    K = dot(P, dot(H.T, inv(IS))) 
+    X = X + dot(K, (Y-IM))
+    P = P - dot(K, dot(IS, K.T)) 
+    LH = gauss_pdf(Y, IM, IS) 
+    return (X,P,K,IM,IS,LH)
+   
+    
+    
+def make_smoothing(self):
+    """
+    """
+    pass
 
 
 def main():
     """Simple function test
     """
-    seed = x0, y0
-    state_var = xk_ref, yk_ref, uk_ref
-    state = gTrueState(state_var)
-    predict = state.make_prediction()
-    update = predict.update()
+    X = np.array([[0.0], [0.0], [0.0]])
+    P = np.array([[0.0, 0.0, 0.0],
+                  [0.0, 0.0, 0.0],
+                  [0.0, 0.0, 0.0]])
+    A = np.array([[1.0, 1.0, 1.0],
+                  [1.0, 1.0, 1.0],
+                  [1.0, 1.0, 1.0]])
+    X_pred, P_pred = make_prediction(X, P, A)
+    print X_pred 
+    print P_pred
+    Y = np.array([[10.], [26.5], [1.]])
+    H = np.array([[None, None, None],
+                  [None, None, None],
+                  [None, None, None]])
+    R =
+    list = make_update(X_pred, P_pred, )
 
 
 if __name__=='__main__':
