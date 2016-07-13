@@ -139,7 +139,7 @@ def build_rate_hist(th_label, infile_list, yref_list):
     nbins = len(yref_list) - 1
     y_min, y_max = 67.5 - yref_list[0], 67.5 - yref_list[-1]
     h = ROOT.TH1F(th_label, th_label, nbins, y_min , y_max)
-    h.Sumw2()
+    #h.Sumw2()
     ybox_list = []
     for i, c in enumerate(ncoinc_list):
         y = 67.5 - yref_list[i]
