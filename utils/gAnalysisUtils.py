@@ -30,53 +30,49 @@ def find_peaks(_x, _y, threashold):
     c = np.delete(c, bad)
     return _x[c], _y[c]
 
-def find_peaks_fit(fileName,isFit=True):
+def find_peaks_fit(file_name, isfit=True):
     """
     """
-    File1 = ROOT.TFile(fileName)
-    yList  = []
-    thList = []
-    for key in File1.GetListOfKeys():
-        thList.append((int(key.GetName().replace("th","")),\
+    file1 = ROOT.TFile(file_name)
+    y_list  = []
+    th_list = []
+    for key in file1.GetListOfKeys():
+        th_list.append((int(key.GetName().replace("th","")), \
                        int(key.GetName().replace("th",""))))
-        h = File1.Get(key.GetName())
-        #h.Sumw2(ROOT.kTRUE)
-        print h.GetBinError(10)
+        h = file1.Get(key.GetName())
         peaks = []
-        for i in range(1,h.GetNbinsX()):
-            if h.GetBinContent(i-1)<h.GetBinContent(i) and  \
-               h.GetBinContent(i)>h.GetBinContent(i+1):
-                peaks.append((h.GetBinCenter(i),h.GetBinContent(i)))
-            if len(peaks)>2:
-                if peaks[0][1]<peaks[1][1] and peaks[0][1]<peaks[2][1]: 
+        for i in range(1, h.GetNbinsX()):
+            if h.GetBinContent(i-1) < h.GetBinContent(i) and  \
+               h.GetBinContent(i) > h.GetBinContent(i+1):
+                peaks.append((h.GetBinCenter(i), h.GetBinContent(i)))
+            if len(peaks) > 2:
+                if peaks[0][1] < peaks[1][1] and peaks[0][1] < peaks[2][1]: 
                     peaks.pop(0)
-                elif peaks[1][1]<peaks[0][1] and peaks[1][1]<peaks[2][1]: 
+                elif peaks[1][1] < peaks[0][1] and peaks[1][1] < peaks[2][1]: 
                     peaks.pop(1)
-                elif peaks[2][1]<peaks[0][1] and peaks[2][1]<peaks[1][1]: 
+                elif peaks[2][1] < peaks[0][1] and peaks[2][1] < peaks[1][1]: 
                     peaks.pop(2)
-        if len(peaks)==1: 
+        if len(peaks) == 1: 
             peaks.append(peaks[0])
-        if not isFit:
-            yList.append((peaks[0],peaks[1]))
+        if not isfit:
+            y_list.append((peaks[0], peaks[1]))
             continue
-        Max=h.GetXaxis().GetXmax()
-        Min=h.GetXaxis().GetXmin()
-        g1 = ROOT.TF1("g1","gaus",Min,Max)
-        g2 = ROOT.TF1("g2","gaus",Min,Max)
-        g1.SetParameter(1,peaks[0][0])
-        g1.SetParameter(2,6)
-        g2.SetParameter(1,peaks[1][0])
-        g2.SetParameter(2,6)
-        fTot = ROOT.TF1( 'total', 'gaus(0)+gaus(3)', Min, Max )
-        par1 = g1.GetParameters()
-        par2 = g2.GetParameters()
-        par = array( 'd', 6*[0.] )
-        par[0], par[1], par[2] = par1[0], par1[1], par1[2]
-        par[3], par[4], par[5] = par2[0], par2[1], par2[2]
-        fTot.SetParameters( par )
-        h.Fit(fTot)
-        yList.append(fTot.GetParameter(2),fTot.GetParameter(4))
-    return thList,yList
+        Max = h.GetXaxis().GetXmax()
+        Min = h.GetXaxis().GetXmin()
+        g1 = ROOT.TF1("g1", "gaus", Min, Max)
+        g2 = ROOT.TF1("g2","gaus", Min, Max)
+        g1.SetParameter(1, peaks[0][0])
+        g1.SetParameter(2, 6)
+        g2.SetParameter(1, peaks[1][0])
+        g2.SetParameter(2, 6)
+        ftot = ROOT.TF1( 'total', 'gaus(0)+gaus(3)', Min, Max )
+        par11, par12, par13 = g1.GetParameter(0), g1.GetParameter(1), g1.GetParameter(2)
+        par21, par22, par23 = g2.GetParameter(0),  g2.GetParameter(1),  g2.GetParameter(2)
+        par = np.array([par11, par12, par13, par21, par22, par23])
+        ftot.SetParameters(par)
+        h.Fit(ftot)
+        y_list.append((ftot.GetParameter(1), ftot.GetParameter(4)))
+    return th_list, y_list
 
 def build_spectrum(name, _e, tot_num_en_ch):
     """Returns a root THF1 with the energy spectrum of the gamma 
