@@ -76,10 +76,25 @@ def mkkalmanfilter(**kwargs):
         _index = np.where(thet_list == th)
         _y, _coinc = build_rate_hist('th%i'%th, infiles[_index], \
                                      yref_list[_index])
-    #from advlab.utils.gAnalysisUtils import find_peaks_fit
-    #th_list, y_list = find_peaks_fit(os.path.join(ADVLAB_OUT,'y_scan.root'))
-    #print th_list
-    #print y_list
+    from advlab.utils.gAnalysisUtils import find_peaks_fit
+    th_list, y_list = find_peaks_fit(os.path.join(ADVLAB_OUT,'y_scan.root'))
+    from advlab.utils.gBox import get_combinations
+    y_comb_list, th_comb_list = get_combinations(th_list, y_list, len(all_th))
+    from advlab.utils.gBox import build_states
+    from advlab.utils.gKalmanFilter import gExtendedKalmanFilter
+    vertex_list, chi2_list = [], []
+    for i, yl in enumerate(y_comb_list[:2]):
+        measure_list, cov_list = build_states(th_comb_list[i], yl)
+        exp_point = np.array([[0.0], [0.0], [1.]])
+        X0 = np.array([[0.], [0.]])
+        KF = gExtendedKalmanFilter(measure_list, exp_point, cov_list, X0)
+        xv, yv, chi2 = KF.compute_vertex()
+        if xv is not None:
+            vertex_list.append((xv, yv))
+            chi2_list.append(chi2)
+    print vertex_list[:10]
+    print chi2_list[:10]
+    """
         _y_arr, _ind = np.unique(np.array(_y), return_index=True)
         _coinc_arr = np.array(_coinc)[_ind]
         from advlab.utils.gAnalysisUtils import find_peaks
@@ -91,9 +106,8 @@ def mkkalmanfilter(**kwargs):
     from advlab.utils.gBox import imaging 
     """
     outfile_name = data.KF_OUTFILE
-    imaging(lines_list, coinc_list, sidex, sidey, gran=5, \
-              outfile=outfile_name)
-    """
+    #imaging(lines_list, coinc_list, sidex, sidey, gran=5, \
+    #          outfile=outfile_name)
 
 if __name__ == '__main__':
     args = PARSER.parse_args()
