@@ -54,6 +54,44 @@ def rotate_line(line, theta):
          np.sin(-theta)*line[1][0]+np.cos(-theta)*line[1][1])
     return new_line
 
+def get_combinations(th_list, y_list, num_scan_angles):
+    y_lists_list = []
+    th_lists_list = []
+    num_peaks = sum(p == th_list[0] for p in th_list)
+    print 'num peaks: ',num_peaks
+    N = num_peaks**num_scan_angles
+    for n in range(0,N+1):
+        BitN = list(str("{0:b}".format(n)))
+        BitN = [0]*(num_scan_angles-len(BitN))+BitN
+        list1, list2 = [], []
+        for i, l in enumerate(y_list):
+            list1.append(l[int(BitN[i])])
+            list2.append(th_list[i][int(BitN[i])])
+        y_lists_list.append(list1)
+        th_lists_list.append(list2)
+    return y_lists_list, th_lists_list
+
+def build_states(th_list, y_list):
+    """
+    """
+    a, b = 10., 130.
+    sig_uu = np.tan(2*np.arctan(a/b))
+    state_list, cov_list = [], []
+    for i, th in enumerate(th_list):
+        line = mkline(y_list[i], th)
+        m, q = get_m_q(line)
+        yref = 26.5
+        if m != 0:
+            uk = 1./m
+        else:
+            uk = 1./1e-100
+        xk = uk*(yref - q)
+        sig_uu = np.tan(2*np.arctan(a/b))
+        sig_xx = 1./np.cos(th)
+        state_list.append((xk, uk))
+        cov_list.append(np.array([[sig_xx*sig_xx, 0], [0, sig_uu*sig_uu]]))
+    return state_list, cov_list
+
 def imaging(lines_list, rate_list, x_side, y_side, gran=1, \
             outfile='imaging.root'):
     """perform the imaging of the gamma-ray emission from sources 
