@@ -60,8 +60,8 @@ def imaging(lines_list, rate_list, x_side, y_side, gran=1, \
        inside the red box
     """
     f = ROOT.TFile(os.path.join(ADVLAB_OUT,outfile), 'RECREATE')
-    xh_low, xh_high = -x_side/2, x_side/2
-    yh_low, yh_high = -y_side/2, y_side/2
+    xh_low, xh_high = -x_side/2., x_side/2.
+    yh_low, yh_high = -y_side/2., y_side/2.
     xh_bins = np.linspace(xh_low, xh_high, (x_side/5)*2*gran)
     yh_bins = np.linspace(yh_low, yh_high, (y_side/5)*2*gran)
     xh_nbins = len(xh_bins)
@@ -132,12 +132,12 @@ def build_rate_hist(th_label, infile_list, yref_list):
     else:
         root_file = ROOT.TFile(root_file_name,'UPDATE')
     nbins = len(yref_list) - 1
-    y_min, y_max = 67.5 - yref_list[0], 67.5 - yref_list[-1]
+    y_min, y_max = 70 - yref_list[0], 70 - yref_list[-1]
     h = ROOT.TH1F(th_label, th_label, nbins, y_min , y_max)
     #h.Sumw2()
     ybox_list = []
     for i, c in enumerate(ncoinc_list):
-        y = 67.5 - yref_list[i]
+        y = 70 - yref_list[i]
         ybox_list.append(y)
         h.Fill(y, c)
     h.GetXaxis().SetTitle('y [mm]')
