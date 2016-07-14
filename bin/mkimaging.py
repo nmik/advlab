@@ -81,7 +81,8 @@ def mkimaging(**kwargs):
 
     from advlab.utils.gBox import imaging 
     outfile_name = data.OUTFILE
-    imaging(lines_list, coinc_list, sidex, sidey, gran=5, outfile=outfile_name)
+    gran = data.GRAN
+    imaging(lines_list, coinc_list, sidex, sidey, gran=gran, outfile=outfile_name)
     
 if __name__ == '__main__':
     args = PARSER.parse_args()
