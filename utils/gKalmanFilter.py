@@ -95,7 +95,7 @@ class gExtendedKalmanFilter():
             Chi2n = np.add(Chi2n, np.dot(rkn.T, np.dot(Gk, rkn)))
             if Chi2n[0][0] > 30:
                 logger.info('Chi2 > 30. Stopping here, return None!')
-                return None, None, None
+                continue
         logger.info('Chi2 = %e '%Chi2n[0][0])
         return Xn[0][0], Xn[1][0], Chi2n[0][0]
 
