@@ -67,23 +67,39 @@ def mkkalmanfilter(**kwargs):
         thet_list.append(thet)
     all_th = np.unique(thet_list)
     yref_list = np.array(yref_list)
-    lines_list, coinc_list = [], []
+    th_list, y_list = [], []
     from advlab.utils.gBox import build_rate_hist
     os.system('rm %s'%os.path.join(ADVLAB_OUT,'y_scan.root'))
-    from advlab.utils.gBox import mkline
+    from advlab.utils.gAnalysisUtils import find_peaks
     for th in all_th:
         logger.info('List of angles scanned:')
         _index = np.where(thet_list == th)
         _y, _coinc = build_rate_hist('th%i'%th, infiles[_index], \
                                      yref_list[_index])
+        _y_arr, _ind = np.unique(np.array(_y), return_index=True)
+        _coinc_arr = np.array(_coinc)[_ind]
+        _ypeaks = find_peaks(th, _y_arr, _coinc_arr, 250)
+        logger.info('%i peaks found!'%len(_ypeaks))
+        if len(_ypeaks)<2:
+            y_list.append((_ypeaks[0], _ypeaks[0]))
+            th_list.append((th, th))
+        else:
+            y_list.append((_ypeaks[0], _ypeaks[1]))
+            th_list.append((th, th))
+    print y_list
+    print th_list
+    
+    """
     from advlab.utils.gAnalysisUtils import find_peaks_fit
     th_list, y_list = find_peaks_fit(os.path.join(ADVLAB_OUT,'y_scan.root'))
+    """
     from advlab.utils.gBox import get_combinations
     y_comb_list, th_comb_list = get_combinations(th_list, y_list, len(all_th))
     from advlab.utils.gBox import build_states
     from advlab.utils.gKalmanFilter import gExtendedKalmanFilter
     vertex_list, chi2_list = [], []
-    for i, yl in enumerate(y_comb_list[:2]):
+
+    for i, yl in enumerate(y_comb_list[:3]):
         measure_list, cov_list = build_states(th_comb_list[i], yl)
         exp_point = np.array([[0.0], [0.0], [1.]])
         X0 = np.array([[0.], [0.]])
@@ -92,8 +108,13 @@ def mkkalmanfilter(**kwargs):
         if xv is not None:
             vertex_list.append((xv, yv))
             chi2_list.append(chi2)
-    print vertex_list[:10]
-    print chi2_list[:10]
+        else:
+            continue
+    print 'min chi2 =', min(chi2_list)
+    _index = np.where(np.array(chi2_list) == min(chi2_list))[0]
+    for ind in _index:
+        print '(xv, yv) =', vertex_list[ind]
+
     """
         _y_arr, _ind = np.unique(np.array(_y), return_index=True)
         _coinc_arr = np.array(_coinc)[_ind]

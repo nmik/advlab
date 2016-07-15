@@ -18,8 +18,9 @@ from ROOT import *
 from advlab import ADVLAB_OUT
 from advlab.utils.logging_ import logger
 from advlab.utils.matplotlib_ import pyplot as plt
+from advlab.utils.matplotlib_ import save_current_figure, overlay_tag
 
-def find_peaks(_x, _y, threashold):
+def find_peaks(th, _x, _y, threashold):
     """to be finished
     """
     c = (np.diff(np.sign(np.diff(_y))) < 0).nonzero()[0] + 1 # local max
@@ -28,7 +29,11 @@ def find_peaks(_x, _y, threashold):
         if _y[index] < threashold:
             bad.append(i)
     c = np.delete(c, bad)
-    return _x[c], _y[c]
+    plt.plot(_x,_y)
+    plt.plot(_x[c], _y[c], "o", label="max")
+    overlay_tag()
+    save_current_figure('th%i_peaks.png'%th, clear=False)
+    return _x[c]
 
 def find_peaks_fit(file_name, isfit=True):
     """
@@ -66,8 +71,10 @@ def find_peaks_fit(file_name, isfit=True):
         g2.SetParameter(1, peaks[1][0])
         g2.SetParameter(2, 6)
         ftot = ROOT.TF1( 'total', 'gaus(0)+gaus(3)', Min, Max )
-        par11, par12, par13 = g1.GetParameter(0), g1.GetParameter(1), g1.GetParameter(2)
-        par21, par22, par23 = g2.GetParameter(0),  g2.GetParameter(1),  g2.GetParameter(2)
+        par11, par12, par13 = g1.GetParameter(0), g1.GetParameter(1), \
+                              g1.GetParameter(2)
+        par21, par22, par23 = g2.GetParameter(0),  g2.GetParameter(1),  \
+                              g2.GetParameter(2)
         par = np.array([par11, par12, par13, par21, par22, par23])
         ftot.SetParameters(par)
         h.Fit(ftot)

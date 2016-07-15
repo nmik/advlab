@@ -57,10 +57,10 @@ def rotate_line(line, theta):
 def get_combinations(th_list, y_list, num_scan_angles):
     y_lists_list = []
     th_lists_list = []
-    num_peaks = sum(p == th_list[0] for p in th_list)
+    num_peaks = len(th_list[0])
     print 'num peaks: ',num_peaks
     N = num_peaks**num_scan_angles
-    for n in range(0,N+1):
+    for n in range(0,N):
         BitN = list(str("{0:b}".format(n)))
         BitN = [0]*(num_scan_angles-len(BitN))+BitN
         list1, list2 = [], []
@@ -74,8 +74,8 @@ def get_combinations(th_list, y_list, num_scan_angles):
 def build_states(th_list, y_list):
     """
     """
-    a, b = 10., 130.
-    sig_uu = np.tan(2*np.arctan(a/b))
+    a, b = 10.23, 128.
+    sig_uu = 2*np.tan(np.arctan(a/b))
     state_list, cov_list = [], []
     for i, th in enumerate(th_list):
         line = mkline(y_list[i], th)
@@ -84,12 +84,12 @@ def build_states(th_list, y_list):
         if m != 0:
             uk = 1./m
         else:
-            uk = 1./1e-100
+            uk = 1./1e-10
         xk = uk*(yref - q)
-        sig_uu = np.tan(2*np.arctan(a/b))
-        sig_xx = 1./np.cos(th)
+        sig_uu = 1.#np.tan(2*np.arctan(a/b))
+        sig_xx = 1.#/np.cos(np.radians(th))
         state_list.append((xk, uk))
-        cov_list.append(np.array([[sig_xx*sig_xx, 0], [0, sig_uu*sig_uu]]))
+        cov_list.append(np.array([[sig_xx*sig_xx, 0.], [0., sig_uu*sig_uu]]))
     return state_list, cov_list
 
 def imaging(lines_list, rate_list, x_side, y_side, gran=1, \
