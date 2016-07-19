@@ -74,17 +74,6 @@ def get_combinations(th_list, y_list, num_scan_angles):
         th_lists_list.append(list2)
     return y_lists_list, th_lists_list
 
-def test_get_combination():
-    """to be moved in the main...
-    """
-    th_list = [(0,0),(40,40),(80,80)]
-    y_list = [(15,0),(0,20),(-20,25)]
-    num_scan_angles = len(th_list)
-    y_lists_list, th_lists_list = get_combinations(th_list, y_list, \
-                                                   num_scan_angles)
-    for i,y in enumerate(y_lists_list):
-        print y
-
 def build_states(th_list, y_list, return_lines=False):
     """
     """
@@ -209,192 +198,17 @@ def build_rate_hist(th_label, infile_list, yref_list):
     logger.info('Created %s'%root_file_name)
     return ybox_list, ncoinc_list
 
-def point_rotation(center, point, theta):
-    """Rotates a point around another centerPoint. Angle is in degrees.
-       Rotation is counter-clockwise
-    """
-    temp_point = point[0]-center[0], point[1]-center[1]
-    temp_point = (temp_point[0]*np.cos(theta)-temp_point[1]*np.sin(theta),\
-                  temp_point[0]*np.sin(theta)+temp_point[1]*np.cos(theta))
-    temp_point = temp_point[0]+ center[0] , temp_point[1]+center[1]
-    return temp_point
-
-def line_lab2box(_x, _y, box_origin_in_lab, theta):
-        """
-        """
-        points = [x,y in zip(_x, _y)]
-        print points
-        rot_points = []
-        for p in points:
-            r_p = point_rotation((MOB_RS_X, MOB_RS_Y), p, -theta)
-            rot_points.append(r_p)
-        print rot_points
-        _rx = [x[0] for x in rot_point if x[0]]
-        _ry = [x[1] for x in rot_point if x[1]]
-        print _rx, _ry
-        
-
-class gBox:
-    """Class implementing the position of the box in the lab reference system
-       given the position of the center of the box in the mobile reference sys.
-    """
-
-    def __init__(self, xc, yc, x_side_lenght, y_side_lenght, theta):
-        """Constructor.
-        
-           Arguments
-           --------- 
-           xc : float
-               The x coordinate of the center of the box in the mobile RS
-           yc : float
-               The y coordinate of the center of the box in the mobile RS
-        """
-        self.theta = theta
-        self.xc = xc
-        self.yc = yc
-        self.xc_boxrs = x_side_lenght/2
-        self.xc_boxrs = y_side_lenght/2
-        self.x_side_lenght = x_side_lenght
-        self.y_side_lenght = y_side_lenght
-        self.xc_lab = xc + MOB_RS_X
-        self.yc_lab = yc + MOB_RS_Y
-        self.ll = point_rotation((MOB_RS_X, MOB_RS_X), \
-                                      (self.xc_lab - x_side_lenght/2, \
-                                       self.yc_lab - y_side_lenght/2), theta)
-        self.hl = point_rotation((MOB_RS_X, MOB_RS_X), \
-                                      (self.xc_lab + x_side_lenght/2, \
-                                       self.yc_lab - y_side_lenght/2), theta)
-        self.hh = point_rotation((MOB_RS_X, MOB_RS_X), \
-                                      (self.xc_lab + x_side_lenght/2, \
-                                       self.yc_lab +  y_side_lenght/2), theta)
-        self.lh = point_rotation((MOB_RS_X, MOB_RS_X), \
-                                      (self.xc_lab - x_side_lenght/2, \
-                                       self.yc_lab + y_side_lenght/2), theta)
-        
-
-    def rotation(self, new_theta, degree=True):
-        """Rotates the given polygon which consists of corners 
-           represented as (x,y), around the ORIGIN, clock-wise, 
-           theta degrees
-        """
-        logger.info('Rotating the box of %.2f degree...'%new_theta)
-        if degree == True:
-            logger.info('Converting degrees to radians...')
-            new_theta = np.radians(new_theta)
-        new_box = gBox(self.xc, self.yc, self.x_side_lenght, \
-                       self.y_side_lenght, new_theta)
-        new_box.print_center_coord()
-        return new_box
-
-    def y_translation(self, delta_y):
-        """Function which translate along the y axis
-        """
-        logger.info('Translating the box along the y axis of %.2f units' \
-                    %delta_y)
-        new_yc = self.yc + delta_y
-        new_box = gBox(self.xc, new_yc, self.x_side_lenght, \
-                       self.y_side_lenght, self.theta)
-        new_box.print_center_coord()
-        return new_box
-
-    def get_box_corners_coord(self):
-        """
-        """
-        ll = self.ll
-        hl = self.hl
-        hh = self.hh
-        lh = self.lh
-        return [ll, hl, hh, lh]
-
-    def print_center_coord(self):
-        """
-        """
-        logger.info('Box center coordinates in the Lab RS: (%.2f,%.2f)' \
-                    %(self.xc_lab, self.yc_lab))
-        corn = self.get_box_corners_coord()
-        logger.info('Corners coordinates:')
-        logger.info('(%.2f,%.2f), (%.2f,%.2f), (%.2f,%.2f), (%.2f,%.2f)'\
-                    %(self.ll[0], self.ll[1], self.hl[0], self.hl[1], \
-                      self.hh[0], self.hh[1], self.lh[0], self.lh[1]))
-    
-
-    def line_in_box(self, y_ref):
-        """
-        """
-        
-        def line_intersection(line, box_side):
-            """Return the intersection point between two lines if any
-            """
-            xdiff = (box_side[0][0] - box_side[1][0], line[0][0] - line[1][0])
-            ydiff = (box_side[0][1] - box_side[1][1], line[0][1] - line[1][1])
-            
-            def det(a, b):
-                return a[0] * b[1] - a[1] * b[0]
-
-            div = det(xdiff, ydiff)
-            if div == 0:
-                logger.info('Lines do not intersect!')
-                return None, None
-            d = (det(*box_side), det(*line))
-            x = det(d, xdiff) / div
-            y = det(d, ydiff) / div
-            return x, y
-
-        ref_line = [(-20, y_ref), (20, y_ref)]
-        box_side1 = [self.ll, self.hl]
-        box_side2 = [self.hl, self.hh]
-        box_side3 = [self.hh, self.lh]
-        box_side4 = [self.lh, self.ll]
-        print 'side 1'
-        x1, y1 = line_intersection(ref_line, box_side1)
-        print 'side 2'
-        x2, y2 = line_intersection(ref_line, box_side2)
-        print 'side 3'
-        x3, y3 = line_intersection(ref_line, box_side3)
-        print 'side 4'
-        x4, y4 = line_intersection(ref_line, box_side4)
-        intersec = [(x1, y1), (x2, y2), (x3, y3), (x4, y4)]
-        _x = [x[0] for x in intersec if x[0] is not None]
-        _y = [x[1] for x in intersec if x[1] is not None]
-        return _x, _y
-        
-    def draw_box(self, show=True):
-        """
-        """
-        plt.xlim(-15.,15.)
-        plt.ylim(0., 30.)
-        plt.plot((self.ll[0], self.hl[0]), (self.ll[1], self.hl[1]), \
-                 'k-', lw=2, color='red')
-        plt.plot((self.hl[0], self.hh[0]), (self.hl[1], self.hh[1]), \
-                 'k-', lw=2, color='red')
-        plt.plot((self.hh[0], self.lh[0]), (self.hh[1], self.lh[1]), \
-                 'k-', lw=2, color='red')
-        plt.plot((self.lh[0], self.ll[0]), (self.lh[1], self.ll[1]), \
-                 'k-', lw=2, color='red')
-        if show == True:
-            plt.show()
-
 def main():
     """Simple test code.
     """
-    a = 5.
-    b = 3.
-    XC = 0.
-    YC = 0.
-    box = gBox(XC, YC, a, b, 0.)
-    _corn = box.get_box_corners_coord()
-    box.print_center_coord()
-    plt.figure(figsize=(6, 6), dpi=80)
-    box.draw_box(show=False)
-    box_r = box.rotation(20.)
-    box_t = box_r.y_translation(5.)
-    box_r.draw_box(show=False)
-    box_t.draw_box(show=False)
-    _x, _y = box.line_in_box(150)
-    line_lab2box(_x, _y, (-a/2, MOB_RS_Y-b/2), 0.)
-    plt.plot(_x, _y)
-    plt.title('Box test')
-    plt.show()
+    th_list = [(0,0),(40,40),(80,80)]
+    y_list = [(15,0),(0,20),(-20,25)]
+    num_scan_angles = len(th_list)
+    y_lists_list, th_lists_list = get_combinations(th_list, y_list, \
+                                                   num_scan_angles)
+    for i,y in enumerate(y_lists_list):
+        print y
+    
 
 if __name__ == '__main__':
-    test_get_combination()
+    main()
