@@ -23,6 +23,7 @@ from scipy import signal
 from advlab import ADVLAB_DATA
 from advlab import ADVLAB_OUT
 from advlab.utils.matplotlib_ import pyplot as plt
+from advlab.utils.matplotlib_ import overlay_tag, save_current_figure
 from advlab.utils.logging_ import logger, startmsg
 
 YREF = re.compile('\_\d+\.')
@@ -76,59 +77,75 @@ def mkkalmanfilter(**kwargs):
         _index = np.where(thet_list == th)
         _y, _coinc = build_rate_hist('th%i'%th, infiles[_index], \
                                      yref_list[_index])
-        _y_arr, _ind = np.unique(np.array(_y), return_index=True)
-        _coinc_arr = np.array(_coinc)[_ind]
-        _ypeaks = find_peaks(th, _y_arr, _coinc_arr, 250)
-        logger.info('%i peaks found!'%len(_ypeaks))
-        if len(_ypeaks)<2:
-            y_list.append((_ypeaks[0], _ypeaks[0]))
-            th_list.append((th, th))
-        else:
-            y_list.append((_ypeaks[0], _ypeaks[1]))
-            th_list.append((th, th))
-    print y_list
-    print th_list
-    
-    """
     from advlab.utils.gAnalysisUtils import find_peaks_fit
     th_list, y_list = find_peaks_fit(os.path.join(ADVLAB_OUT,'y_scan.root'))
-    """
     from advlab.utils.gBox import get_combinations
     y_comb_list, th_comb_list = get_combinations(th_list, y_list, len(all_th))
+    logger.info('Number of Combinations: %i'%len(y_comb_list))
     from advlab.utils.gBox import build_states
     from advlab.utils.gKalmanFilter import gExtendedKalmanFilter
-    vertex_list, chi2_list = [], []
-
-    for i, yl in enumerate(y_comb_list[:3]):
-        measure_list, cov_list = build_states(th_comb_list[i], yl)
-        exp_point = np.array([[0.0], [0.0], [1.]])
+    vertex_list, chi2_list, lines_list = [], [], []
+    plt.figure()
+    plt.title('Distribution of vertexes')
+    plt.xlim(-39.5, 39.5)
+    plt.ylim(-26.5, 26.5)
+    plt.xlabel('x [mm]')
+    plt.ylabel('y [mm]')
+    overlay_tag()
+    outfile_name = data.KF_OUTFILE
+    save_current_figure(outfile_name.replace('.png','_DISTRIB.png'), clear=False)
+    for i, yl in enumerate(y_comb_list):
+        measure_list, cov_list, lines = build_states(th_comb_list[i], yl, return_lines=True)
+        exp_point = np.array([[0.0], [0.0], [0.]])
         X0 = np.array([[0.], [0.]])
         KF = gExtendedKalmanFilter(measure_list, exp_point, cov_list, X0)
         xv, yv, chi2 = KF.compute_vertex()
         if xv is not None:
+            plt.plot(xv,yv, 'o')
             vertex_list.append((xv, yv))
             chi2_list.append(chi2)
+            lines_list.append(lines)
         else:
             continue
-    print 'min chi2 =', min(chi2_list)
+    _index = np.where(np.array(chi2_list) == min(chi2_list))[0]
+    plt.figure()
+    ax = plt.subplot()
+    for ind in _index:
+        logger.info('1st (%.2f, %.2f) ='%(vertex_list[ind][0],vertex_list[ind][1]))
+        logger.info('Chi2 = %f'%chi2_list[ind])
+        plt.plot(vertex_list[ind][0],vertex_list[ind][1],'o',color='red')
+        for l in lines_list[ind]:
+            plt.plot([l[0][0],l[1][0]],[l[0][1],l[1][1]], '--', color='darkgray')
+        v_label = '(%.2f, %.2f)'%(vertex_list[ind][0],vertex_list[ind][1])
+        chi2_label = '%.5f'%chi2_list[ind]
+        ax.annotate(v_label, xy=(vertex_list[ind][0]-6, vertex_list[ind][1]-2), \
+                    xytext=(vertex_list[ind][0]-6, vertex_list[ind][1]-2))
+        ax.annotate('$\chi^{2}=$'+chi2_label,xy=(vertex_list[ind][0]-4, vertex_list[ind][1]-4),\
+                    xytext=(vertex_list[ind][0]-6,vertex_list[ind][1]-4))
+        vertex_list.pop(ind)
+        chi2_list.pop(ind)
     _index = np.where(np.array(chi2_list) == min(chi2_list))[0]
     for ind in _index:
-        print '(xv, yv) =', vertex_list[ind]
-
-    """
-        _y_arr, _ind = np.unique(np.array(_y), return_index=True)
-        _coinc_arr = np.array(_coinc)[_ind]
-        from advlab.utils.gAnalysisUtils import find_peaks
-        _ypeaks, _coincpeaks = find_peaks(_y_arr, _coinc_arr, 250)
-        logger.info('%i peaks found!'%len(_ypeaks))
-        for i,y in enumerate(_ypeaks):
-            lines_list.append(mkline(y, th))
-            coinc_list.append(_coincpeaks[i])
-    from advlab.utils.gBox import imaging 
-    """
+        logger.info('2nd (%.2f, %.2f) ='%(vertex_list[ind][0],vertex_list[ind][1]))
+        logger.info('Chi2 = %f'%chi2_list[ind])
+        plt.plot(vertex_list[ind][0],vertex_list[ind][1],'o',color='blue')
+        for l in lines_list[ind]:
+            plt.plot([l[0][0],l[1][0]],[l[0][1],l[1][1]], '--', color='silver')
+        v_label = '(%.2f, %.2f)'%(vertex_list[ind][0],vertex_list[ind][1])
+        chi2_label = '%.5f'%chi2_list[ind]
+        ax.annotate(v_label, xy=(vertex_list[ind][0]-6, vertex_list[ind][1]-2), \
+                    xytext=(vertex_list[ind][0]-6, vertex_list[ind][1]-2))
+        ax.annotate('$\chi^{2}=$'+chi2_label,xy=(vertex_list[ind][0]-6, vertex_list[ind][1]-4),\
+                    xytext=(vertex_list[ind][0]-6,vertex_list[ind][1]-4))
+    plt.xlim(-39.5, 39.5)
+    plt.ylim(-26.5, 26.5)
+    plt.xlabel('x [mm]')
+    plt.ylabel('y [mm]')
+    plt.title('Vertexing of Na$^{22}$ sources')
+    overlay_tag()
     outfile_name = data.KF_OUTFILE
-    #imaging(lines_list, coinc_list, sidex, sidey, gran=5, \
-    #          outfile=outfile_name)
+    save_current_figure(outfile_name, clear=False)
+    plt.show()
 
 if __name__ == '__main__':
     args = PARSER.parse_args()

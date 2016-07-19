@@ -38,7 +38,7 @@ def get_m_q(line):
     return m, q
 
 def mkline(ybox, theta):
-    line = (-39.5, ybox), (39.5, ybox)
+    line = (-60, ybox), (60, ybox)
     r_line = rotate_line(line, theta)
     return r_line
 
@@ -55,6 +55,9 @@ def rotate_line(line, theta):
     return new_line
 
 def get_combinations(th_list, y_list, num_scan_angles):
+    """returns a list with all the possible combinations of y_list[i] 
+       elements in class num_scan_angles
+    """
     y_lists_list = []
     th_lists_list = []
     num_peaks = len(th_list[0])
@@ -71,25 +74,46 @@ def get_combinations(th_list, y_list, num_scan_angles):
         th_lists_list.append(list2)
     return y_lists_list, th_lists_list
 
-def build_states(th_list, y_list):
+def test_get_combination():
+    """to be moved in the main...
+    """
+    th_list = [(0,0),(40,40),(80,80)]
+    y_list = [(15,0),(0,20),(-20,25)]
+    num_scan_angles = len(th_list)
+    y_lists_list, th_lists_list = get_combinations(th_list, y_list, \
+                                                   num_scan_angles)
+    for i,y in enumerate(y_lists_list):
+        print y
+
+def build_states(th_list, y_list, return_lines=False):
     """
     """
     a, b = 10.23, 128.
-    sig_uu = 2*np.tan(np.arctan(a/b))
-    state_list, cov_list = [], []
+    state_list, cov_list, lines = [], [], []
     for i, th in enumerate(th_list):
         line = mkline(y_list[i], th)
         m, q = get_m_q(line)
+        x = np.arange(-10,10)
+        y = x*m + q
         yref = 26.5
         if m != 0:
             uk = 1./m
+            xk = uk*(yref - q)
+            sig_uu = np.tan(np.pi/2-np.arctan(a/b))
+            sig_xx = 1./np.cos(np.radians(th))
         else:
             uk = 1./1e-10
-        xk = uk*(yref - q)
-        sig_uu = 1.#np.tan(2*np.arctan(a/b))
-        sig_xx = 1.#/np.cos(np.radians(th))
+            xk = uk*(yref - q)
+            sig_uu = 2*uk#np.tan(np.pi/2-2*np.arctan(a/b))
+            sig_xx = 1.*xk#/np.cos(np.radians(th))
         state_list.append((xk, uk))
         cov_list.append(np.array([[sig_xx*sig_xx, 0.], [0., sig_uu*sig_uu]]))
+        lines.append(line)
+        logger.info('Setting cov matrix: sig(xx)=%.2f, sig(uu)=%.2f'%(sig_xx, \
+                                                                      sig_uu))
+    if return_lines == True:
+        return state_list, cov_list, lines
+    #plt.show()
     return state_list, cov_list
 
 def imaging(lines_list, rate_list, x_side, y_side, gran=1, \
@@ -373,4 +397,4 @@ def main():
     plt.show()
 
 if __name__ == '__main__':
-    main()
+    test_get_combination()
