@@ -223,6 +223,6 @@ INFILES = np.array([os.path.join(ADVLAB_DATA, 'scan_0_40.dat'),
                     os.path.join(ADVLAB_DATA, 'scan_320_115.dat'),
                     os.path.join(ADVLAB_DATA, 'scan_320_120.dat'),
                     os.path.join(ADVLAB_DATA, 'scan_320_125.dat'),
-                    os.path.join(ADVLAB_DATA, 'scan_320_130.dat'),
-                    os.path.join(ADVLAB_DATA, 'scan_320_135.dat'),
+                    #os.path.join(ADVLAB_DATA, 'scan_320_130.dat'),
+                    #os.path.join(ADVLAB_DATA, 'scan_320_135.dat'),
                 ])
