@@ -113,30 +113,30 @@ def mkkalmanfilter(**kwargs):
     for ind in _index:
         logger.info('1st vertex: (%.2f, %.2f)'%(vertex_list[ind][0],vertex_list[ind][1]))
         logger.info('Chi2 = %f'%chi2_list[ind])
-        plt.plot(vertex_list[ind][0],vertex_list[ind][1],'o',color='red')
         for l in lines_list[ind]:
             plt.plot([l[0][0],l[1][0]],[l[0][1],l[1][1]], '--', color='darkgray')
+        plt.plot(vertex_list[ind][0],vertex_list[ind][1],'o',color='red')
         v_label = '(%.2f, %.2f)'%(vertex_list[ind][0],vertex_list[ind][1])
         chi2_label = '%.5f'%chi2_list[ind]
-        ax.annotate(v_label, xy=(vertex_list[ind][0]-6, vertex_list[ind][1]-2), \
-                    xytext=(vertex_list[ind][0]-6, vertex_list[ind][1]-2))
-        ax.annotate('$\chi^{2}=$'+chi2_label,xy=(vertex_list[ind][0]-4, vertex_list[ind][1]-4),\
-                    xytext=(vertex_list[ind][0]-6,vertex_list[ind][1]-4))
+        ax.annotate(v_label, xy=(vertex_list[ind][0]-8, vertex_list[ind][1]-2), \
+                    xytext=(vertex_list[ind][0]-8, vertex_list[ind][1]-2))
+        ax.annotate('$\chi^{2}=$'+chi2_label,xy=(vertex_list[ind][0]-8, vertex_list[ind][1]-4),\
+                    xytext=(vertex_list[ind][0]-8,vertex_list[ind][1]-4))
         vertex_list.pop(ind)
         chi2_list.pop(ind)
     _index = np.where(np.array(chi2_list) == min(chi2_list))[0]
     for ind in _index:
         logger.info('2nd vertex: (%.2f, %.2f)'%(vertex_list[ind][0],vertex_list[ind][1]))
         logger.info('Chi2 = %f'%chi2_list[ind])
-        plt.plot(vertex_list[ind][0],vertex_list[ind][1],'o',color='blue')
         for l in lines_list[ind]:
             plt.plot([l[0][0],l[1][0]],[l[0][1],l[1][1]], '--', color='silver')
+        plt.plot(vertex_list[ind][0],vertex_list[ind][1],'o',color='blue')
         v_label = '(%.2f, %.2f)'%(vertex_list[ind][0],vertex_list[ind][1])
         chi2_label = '%.5f'%chi2_list[ind]
-        ax.annotate(v_label, xy=(vertex_list[ind][0]-6, vertex_list[ind][1]-2), \
-                    xytext=(vertex_list[ind][0]-6, vertex_list[ind][1]-2))
-        ax.annotate('$\chi^{2}=$'+chi2_label,xy=(vertex_list[ind][0]-6, vertex_list[ind][1]-4),\
-                    xytext=(vertex_list[ind][0]-6,vertex_list[ind][1]-4))
+        ax.annotate(v_label, xy=(vertex_list[ind][0]-8, vertex_list[ind][1]-2), \
+                    xytext=(vertex_list[ind][0]-8, vertex_list[ind][1]-2))
+        ax.annotate('$\chi^{2}=$'+chi2_label,xy=(vertex_list[ind][0]-8, vertex_list[ind][1]-4),\
+                    xytext=(vertex_list[ind][0]-8,vertex_list[ind][1]-4))
     plt.xlim(-39.5, 39.5)
     plt.ylim(-26.5, 26.5)
     plt.xlabel('x [mm]')
