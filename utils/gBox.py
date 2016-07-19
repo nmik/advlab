@@ -54,11 +54,12 @@ def rotate_line(line, theta):
          np.sin(-theta)*line[1][0]+np.cos(-theta)*line[1][1])
     return new_line
 
-def get_combinations(th_list, y_list, num_scan_angles):
+def get_combinations(th_list, y_list, sigy_list, num_scan_angles):
     """returns a list with all the possible combinations of y_list[i] 
        elements in class num_scan_angles
     """
     y_lists_list = []
+    sigy_lists_list = []
     th_lists_list = []
     num_peaks = len(th_list[0])
     print 'num peaks: ',num_peaks
@@ -66,15 +67,17 @@ def get_combinations(th_list, y_list, num_scan_angles):
     for n in range(0,N):
         BitN = list(str("{0:b}".format(n)))
         BitN = [0]*(num_scan_angles-len(BitN))+BitN
-        list1, list2 = [], []
+        list1, list2, list3 = [], [], []
         for i, l in enumerate(y_list):
             list1.append(l[int(BitN[i])])
             list2.append(th_list[i][int(BitN[i])])
+            list3.append(sigy_list[i][int(BitN[i])])
         y_lists_list.append(list1)
+        sigy_lists_list.append(list3)
         th_lists_list.append(list2)
-    return y_lists_list, th_lists_list
+    return th_lists_list, y_lists_list, sigy_lists_list
 
-def build_states(th_list, y_list, return_lines=False):
+def build_states(th_list, y_list, sigy_list, return_lines=False):
     """
     """
     a, b = 10.23, 128.
@@ -82,19 +85,17 @@ def build_states(th_list, y_list, return_lines=False):
     for i, th in enumerate(th_list):
         line = mkline(y_list[i], th)
         m, q = get_m_q(line)
-        x = np.arange(-10,10)
-        y = x*m + q
         yref = 26.5
         if m != 0:
             uk = 1./m
             xk = uk*(yref - q)
-            sig_uu = np.tan(np.pi/2-np.arctan(a/b))
-            sig_xx = 1./np.cos(np.radians(th))
+            sig_uu = 2*a/b
+            sig_xx = sigy_list[i]#1./np.cos(np.radians(th))
         else:
             uk = 1./1e-10
             xk = uk*(yref - q)
-            sig_uu = 2*uk#np.tan(np.pi/2-2*np.arctan(a/b))
-            sig_xx = 1.*xk#/np.cos(np.radians(th))
+            sig_uu = uk*2*a/b
+            sig_xx = xk*sigy_list[i]#/np.cos(np.radians(th))
         state_list.append((xk, uk))
         cov_list.append(np.array([[sig_xx*sig_xx, 0.], [0., sig_uu*sig_uu]]))
         lines.append(line)

@@ -40,6 +40,7 @@ def find_peaks_fit(file_name, isfit=True):
     """
     file1 = ROOT.TFile(file_name)
     y_list  = []
+    sigy_list = []
     th_list = []
     for key in file1.GetListOfKeys():
         th_list.append((int(key.GetName().replace("th","")), \
@@ -79,7 +80,12 @@ def find_peaks_fit(file_name, isfit=True):
         ftot.SetParameters(par)
         h.Fit(ftot)
         y_list.append((ftot.GetParameter(1), ftot.GetParameter(4)))
-    return th_list, y_list
+        sigy_list.append((ftot.GetParError(1)/\
+                          np.sqrt(ftot.Eval(ftot.GetParameter(1))), \
+                          ftot.GetParError(4)/\
+                          np.sqrt(ftot.Eval(ftot.GetParameter(4)))))
+        
+    return th_list, y_list, sigy_list
 
 def build_spectrum(name, _e, tot_num_en_ch):
     """Returns a root THF1 with the energy spectrum of the gamma 

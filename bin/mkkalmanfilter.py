@@ -78,9 +78,13 @@ def mkkalmanfilter(**kwargs):
         _y, _coinc = build_rate_hist('th%i'%th, infiles[_index], \
                                      yref_list[_index])
     from advlab.utils.gAnalysisUtils import find_peaks_fit
-    th_list, y_list = find_peaks_fit(os.path.join(ADVLAB_OUT,'y_scan.root'))
+    th_list, y_list, sigy_list = find_peaks_fit(os.path.join(ADVLAB_OUT,\
+                                                             'y_scan.root'))
     from advlab.utils.gBox import get_combinations
-    y_comb_list, th_comb_list = get_combinations(th_list, y_list, len(all_th))
+    th_comb_list, y_comb_list, sigy_comb_list = get_combinations(th_list, \
+                                                                 y_list, \
+                                                                 sigy_list,\
+                                                                 len(all_th))
     logger.info('Number of Combinations: %i'%len(y_comb_list))
     from advlab.utils.gBox import build_states
     from advlab.utils.gKalmanFilter import gExtendedKalmanFilter
@@ -92,7 +96,8 @@ def mkkalmanfilter(**kwargs):
     plt.xlabel('x [mm]')
     plt.ylabel('y [mm]')
     for i, yl in enumerate(y_comb_list):
-        measure_list, cov_list, lines = build_states(th_comb_list[i], yl, return_lines=True)
+        measure_list, cov_list, lines = build_states(th_comb_list[i], \
+                                        yl, sigy_comb_list[i], return_lines=True)
         exp_point = np.array([[0.0], [0.0], [0.]])
         X0 = np.array([[0.], [0.]])
         KF = gExtendedKalmanFilter(measure_list, exp_point, cov_list, X0)
@@ -124,6 +129,7 @@ def mkkalmanfilter(**kwargs):
                     xytext=(vertex_list[ind][0]-8,vertex_list[ind][1]-4))
         vertex_list.pop(ind)
         chi2_list.pop(ind)
+        lines_list.pop(ind)
     _index = np.where(np.array(chi2_list) == min(chi2_list))[0]
     for ind in _index:
         logger.info('2nd vertex: (%.2f, %.2f)'%(vertex_list[ind][0],vertex_list[ind][1]))
