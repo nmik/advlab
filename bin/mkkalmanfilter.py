@@ -91,9 +91,6 @@ def mkkalmanfilter(**kwargs):
     plt.ylim(-26.5, 26.5)
     plt.xlabel('x [mm]')
     plt.ylabel('y [mm]')
-    overlay_tag()
-    outfile_name = data.KF_OUTFILE
-    save_current_figure(outfile_name.replace('.png','_DISTRIB.png'), clear=False)
     for i, yl in enumerate(y_comb_list):
         measure_list, cov_list, lines = build_states(th_comb_list[i], yl, return_lines=True)
         exp_point = np.array([[0.0], [0.0], [0.]])
@@ -107,11 +104,14 @@ def mkkalmanfilter(**kwargs):
             lines_list.append(lines)
         else:
             continue
+    overlay_tag()
+    outfile_name = data.KF_OUTFILE
+    save_current_figure(outfile_name.replace('.png','_DISTRIB.png'), clear=False)
     _index = np.where(np.array(chi2_list) == min(chi2_list))[0]
     plt.figure()
     ax = plt.subplot()
     for ind in _index:
-        logger.info('1st (%.2f, %.2f) ='%(vertex_list[ind][0],vertex_list[ind][1]))
+        logger.info('1st vertex: (%.2f, %.2f)'%(vertex_list[ind][0],vertex_list[ind][1]))
         logger.info('Chi2 = %f'%chi2_list[ind])
         plt.plot(vertex_list[ind][0],vertex_list[ind][1],'o',color='red')
         for l in lines_list[ind]:
@@ -126,7 +126,7 @@ def mkkalmanfilter(**kwargs):
         chi2_list.pop(ind)
     _index = np.where(np.array(chi2_list) == min(chi2_list))[0]
     for ind in _index:
-        logger.info('2nd (%.2f, %.2f) ='%(vertex_list[ind][0],vertex_list[ind][1]))
+        logger.info('2nd vertex: (%.2f, %.2f)'%(vertex_list[ind][0],vertex_list[ind][1]))
         logger.info('Chi2 = %f'%chi2_list[ind])
         plt.plot(vertex_list[ind][0],vertex_list[ind][1],'o',color='blue')
         for l in lines_list[ind]:
