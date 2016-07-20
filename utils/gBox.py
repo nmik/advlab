@@ -90,12 +90,12 @@ def build_states(th_list, y_list, sigy_list, return_lines=False):
             uk = 1./m
             xk = uk*(yref - q)
             sig_uu = 2*a/b
-            sig_xx = sigy_list[i]#1./np.cos(np.radians(th))
+            sig_xx = np.sqrt(sig_uu**2 + sigy_list[i]**2)
         else:
             uk = 1./1e-10
             xk = uk*(yref - q)
             sig_uu = uk*2*a/b
-            sig_xx = xk*sigy_list[i]#/np.cos(np.radians(th))
+            sig_xx = xk*np.sqrt(sig_uu**2 + sigy_list[i]**2)
         state_list.append((xk, uk))
         cov_list.append(np.array([[sig_xx*sig_xx, 0.], [0., sig_uu*sig_uu]]))
         lines.append(line)
