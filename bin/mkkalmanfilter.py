@@ -113,10 +113,8 @@ def mkkalmanfilter(**kwargs):
     outfile_name = data.KF_OUTFILE
     save_current_figure(outfile_name.replace('.png','_DISTRIB.png'), clear=False)
 
-    vertex_list = vertex_list[:len(vertex_list)/2]
-    chi2_list = chi2_list[:len(chi2_list)/2]
-    lines_list = lines_list[:len(lines_list)/2]
     ind = np.where(np.array(chi2_list) == min(chi2_list))[0][0]
+    indv = np.where(np.array(vertex_list) == vertex_list[ind][0])[0]
     plt.figure()
     ax = plt.subplot()
     logger.info('1st vertex: (%.2f, %.2f)'%(vertex_list[ind][0],vertex_list[ind][1]))
@@ -130,9 +128,9 @@ def mkkalmanfilter(**kwargs):
                 xytext=(vertex_list[ind][0]-8, vertex_list[ind][1]-2))
     ax.annotate('$\chi^{2}=$'+chi2_label,xy=(vertex_list[ind][0]-8, vertex_list[ind][1]-4),\
                 xytext=(vertex_list[ind][0]-8,vertex_list[ind][1]-4))
-    vertex_list.pop(ind)
-    chi2_list.pop(ind)
-    lines_list.pop(ind)
+    vertex_list = [i for j, i in enumerate(vertex_list) if j not in indv]
+    chi2_list = [i for j, i in enumerate(chi2_list) if j not in indv]
+    lines_list = [i for j, i in enumerate(lines_list) if j not in indv]
     ind2 = np.where(np.array(chi2_list) == min(chi2_list))[0][0]
     logger.info('2nd vertex: (%.2f, %.2f)'%(vertex_list[ind2][0],vertex_list[ind2][1]))
     logger.info('Chi2 = %f'%chi2_list[ind2])
