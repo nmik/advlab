@@ -10,7 +10,7 @@
 #------------------------------------------------------------------------------#
 
 
-"""Imaging app
+"""Kalman Filter Vertexing app
 """
 
 import os
@@ -49,9 +49,10 @@ def get_var_from_file(filename):
     f.close()
 
 def mkkalmanfilter(**kwargs):
-    """I have to give a set of 'line', namely lists like [p1, p2, w]
-       where p1(x1,y1), p2(x2,y2) determin the line inside the box,
-       and w is the wheight resulting from the rate
+    """Search for the coincidences; Clusterize the coincidences for each y-scan;
+       Make all the possible combination of lines to produce a vertex; Run the
+       Kalman Filter to compute the vertex for each combination of lines; Take 
+       the 2 (should be generalized) vertexes with the minimum Chi2.
     """
     assert(kwargs['configfile'].endswith('.py'))
     get_var_from_file(kwargs['configfile'])
