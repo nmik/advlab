@@ -121,19 +121,20 @@ def channel2energy(_e, ch_num):
            while the sencond is the corresponding energy [given in MeV].
     """
     ch, en = [], [] 
-    calib_ch0 = [(1917,0.356),(466,0.08),(2721,0.511),(6594,1.27),\
+    calib_ch0 = [(1917,0.356),(466,0.03),(2721,0.511),(6594,1.27),\
                  (3504,0.662),(6044,1.17),(6843,1.33)]
-    calib_ch2 = [(2022,0.356),(496,0.08),(2846,0.511),(6906,1.27),\
+    calib_ch2 = [(2022,0.356),(496,0.03),(2846,0.511),(6906,1.27),\
                  (3674,0.662),(6362,1.17),(7214,1.33)]
     if ch_num == 0:
-        ch.append([x[0] for x in calib_ch0][0])
-        en.append([x[1] for x in calib_ch0][0])
+        ch.append([x[0] for x in calib_ch0])
+        en.append([x[1] for x in calib_ch0])
     if ch_num == 2:
-        ch.append([x[0] for x in calib_ch2][0])
-        en.append([x[1] for x in calib_ch2][0])
-    ch = np.array(ch)
-    en = np.array(en)
+        ch.append([x[0] for x in calib_ch2])
+        en.append([x[1] for x in calib_ch2])
+    ch = np.array(ch[0])
+    en = np.array(en[0])
     p = np.polyfit(ch, en, 1)
+    logger.info('Energy fit parameters: [0]=%f, [1]=%f'%(p[0], p[1]))
     en_array = p[1] + _e*p[0]
     return en_array
 

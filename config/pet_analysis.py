@@ -1,7 +1,7 @@
 #!/usr/bin/env python                                                          #
 #                                                                              #
 # Autor: Michela Negro, University of Torino.                                  #
-#                                                                              # 
+#                                                                              #
 # This program is free software; you can redistribute it and/or modify         #
 # it under the terms of the GNU GengReral Public License as published by       #
 # the Free Software Foundation; either version 3 of the License, or            #
@@ -35,10 +35,15 @@ def draw_en_calib_curves(list_channel_names, list_channel_arrays, \
     plt.title('Na Energy Calibration')
     plt.xlabel('Channel')
     plt.ylabel('Energy [MeV]')
+    calib_ch0_x = [1917,466,2721,6594,3504,6044,6843]
+    calib_y = [0.356,0.03,0.511,1.27,0.662,1.17,1.33]
+    calib_ch2_x = [2022,496,2846,6906,3674,6362,7214]
     for i, item in enumerate(list_energy_arrays):
         _channel, _index = np.unique(list_channel_arrays[i], return_index=True)
         item = item[_index]
-        plt.plot(_channel, item, '.', label=list_channel_names[i])
+        plt.plot(_channel, item, '-', label=list_channel_names[i])
+    plt.plot(calib_ch0_x, calib_y, '.', color='red', label='ch0 benchmarks')
+    plt.plot(calib_ch2_x, calib_y, '.', color='orange', label='ch2 benchmarks')
     plt.xlim(0.,TOT_NUM_EN_CH)
     plt.legend(loc='center left', shadow=False, fontsize='small')
     overlay_tag()
